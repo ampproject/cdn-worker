@@ -52,7 +52,7 @@ router.onerror = (req, res, status, error) =>
 router.add('GET', '/', () => Response.redirect('https://amp.dev/'));
 
 router.add('GET', '/favicon.ico', () => {
-  return fetch('https://amp.dev/static/img/favicon.png');
+  return fetchOrDie('https://amp.dev/static/img/favicon.png');
 });
 
 router.add('GET', '/rtv/metadata', async (request) => {

@@ -29,7 +29,9 @@
  * @returns a Response object for the request URL.
  */
 export async function fetchOrDie(url: string): Promise<Response> {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    cf: {cacheEverything: true, cacheTtl: 31536000},
+  });
   return response.ok
     ? response
     : new Response(`🌩 ${response.status} Error: ${response.statusText}`);
