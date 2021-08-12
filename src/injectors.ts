@@ -59,6 +59,10 @@ export async function injectAmpExp(
       )
       .map((experiment) => [experiment.name, experiment.percentage])
   );
+  if (Object.keys(ampExpJson).length === 0) {
+    console.info('No AMP_EXP defined for RTV', rtv, '; skipping injection');
+    return response;
+  }
 
   console.log('Injecting AMP_EXP');
   const text = await response.text();
