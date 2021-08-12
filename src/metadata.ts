@@ -46,7 +46,7 @@ export async function rtvMetadata(request: ServerRequest): Promise<Response> {
 
   const stableRtv = rtvs.get(Channel.STABLE);
   const ltsRtv = rtvs.get(Channel.LTS);
-  const otherRtvs = Array.from(rtvs.values()).filter(
+  const otherRtvs = [...rtvs.values()].filter(
     (rtv) => ![stableRtv, ltsRtv].includes(rtv)
   );
 
