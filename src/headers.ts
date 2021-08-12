@@ -18,7 +18,7 @@
  * HTTP headers related functions and consts.
  */
 
-const SHARED_HEADERS = new Map<string, string>([
+const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['Access-Control-Allow-Origin', '*'],
   [
     'Content-Security-Policy',
