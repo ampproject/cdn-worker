@@ -49,10 +49,10 @@ export async function chooseRtv(
 ): Promise<string> {
   // Choose which channel to opt in to based on the following order:
   const channelChooser = [
-    // Query param (?optin=channel-name):
-    request.query.get('optin'),
     // Opt-in cookie value:
     Cookie.parse(request.headers.get('cookie') ?? '').__Host_AMP_OPT_IN,
+    // Query param (?optin=channel-name):
+    request.query.get('optin'),
     // LTS request:
     isLts && Channel.LTS,
     // Default to Stable:
