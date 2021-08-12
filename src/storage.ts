@@ -28,7 +28,7 @@
  * @param url - to fetch from cache or network.
  * @returns a Response object for the request URL.
  */
-export async function fetchOrDie(url: string): Promise<Response> {
+export async function fetchImmutableOrDie(url: string): Promise<Response> {
   const response = await fetch(url, {
     cf: {cacheEverything: true, cacheTtl: 31536000},
   });

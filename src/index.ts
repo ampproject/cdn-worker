@@ -30,7 +30,7 @@ import {
 import {injectAmpExp, injectAmpGeo} from './injectors';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
-import {fetchOrDie} from './storage';
+import {fetchImmutableOrDie} from './storage';
 
 // TODO(danielrozenberg): replace this with a storage location that serves the
 // raw compiled binaries without any of the modifications that the Google AMP
@@ -52,7 +52,7 @@ router.onerror = (req, res, status, error) =>
 router.add('GET', '/', () => Response.redirect('https://amp.dev/'));
 
 router.add('GET', '/favicon.ico', () => {
-  return fetchOrDie('https://amp.dev/static/img/favicon.png');
+  return fetchImmutableOrDie('https://amp.dev/static/img/favicon.png');
 });
 
 router.add('GET', '/rtv/metadata', async (request) => {
@@ -68,7 +68,7 @@ router.add('GET', '/rtv/:rtv/*', async ({headers, path}) => {
   const countryIso = headers.get('cf-ipcountry');
 
   const storageUrl = `${STORAGE_BASE_URL}${path}`;
-  const response = await fetchOrDie(storageUrl);
+  const response = await fetchImmutableOrDie(storageUrl);
 
   if (countryIso && path.includes('/v0/amp-geo-')) {
     return withHeaders(
@@ -96,7 +96,7 @@ router.add('GET', '*', async (req) => {
 
   console.log('Chose RTV', rtv);
   const storageUrl = `${STORAGE_BASE_URL}/rtv/${rtv}${path}`;
-  const response = await fetchOrDie(storageUrl);
+  const response = await fetchImmutableOrDie(storageUrl);
 
   if (!isLts && (path == '/v0.js' || path == '/v0.mjs')) {
     return withHeaders(
