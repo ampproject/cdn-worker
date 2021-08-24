@@ -85,8 +85,12 @@ export async function injectAmpExp(
  */
 export async function injectAmpGeo(
   response: Response,
-  countryIso: string
+  countryIso: string | null
 ): Promise<Response> {
+  if (!countryIso) {
+    console.warn('ISO country code is empty, skipping amp-geo injection');
+    return response;
+  }
   console.log('Injecting amp-geo ISO country code');
   // TODO(danielrozenberg): add support for subdivisions, e.g., "us-ca"
   const text = await response.text();

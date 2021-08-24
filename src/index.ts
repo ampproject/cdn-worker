@@ -70,7 +70,7 @@ router.add('GET', '/rtv/:rtv/*', async ({headers, path}) => {
   const storageUrl = `${STORAGE_BASE_URL}${path}`;
   const response = await fetchImmutableOrDie(storageUrl);
 
-  if (countryIso && path.includes('/v0/amp-geo-')) {
+  if (path.includes('/v0/amp-geo-')) {
     return withHeaders(
       await injectAmpGeo(response, countryIso),
       CacheControl.AMP_GEO
@@ -103,7 +103,7 @@ router.add('GET', '*', async (req) => {
       await injectAmpExp(response, rtv),
       cacheControlFor(cacheControlOptions)
     );
-  } else if (countryIso && path.includes('/v0/amp-geo-')) {
+  } else if (path.includes('/v0/amp-geo-')) {
     return withHeaders(
       await injectAmpGeo(response, countryIso),
       CacheControl.AMP_GEO
