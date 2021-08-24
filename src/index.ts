@@ -121,14 +121,25 @@ router.add('GET', '/lts/*', async (req) => {
   return withHeaders(response, CacheControl.LTS);
 });
 
-router.add('GET', '/sw/*', async (req) => {
+/**
+ * Handles unversioned requests to service worker files.
+ *
+ * @param req - the request object.
+ * @returns Response object with service worker content.
+ */
+async function unversionedServiceWorkerRequest(
+  req: ServerRequest
+): Promise<Response> {
   console.log('Serving unversioned service worker request to', req.path);
 
   const rtv = await chooseRtv(req);
   const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
 
   return withHeaders(response, CacheControl.SERVICE_WORKER_FILE);
-});
+}
+
+router.add('GET', '/lts/sw/*', unversionedServiceWorkerRequest);
+router.add('GET', '/sw/*', unversionedServiceWorkerRequest);
 
 router.add('GET', '/*', async (req) => {
   console.log('Serving unversioned request to', req.path);
