@@ -50,9 +50,11 @@ export async function rtvMetadata(request: ServerRequest): Promise<Response> {
 
   const stableRtv = rtvs.get(Channel.STABLE);
   const ltsRtv = rtvs.get(Channel.LTS);
-  const otherRtvs = [...rtvs.values()].filter(
-    (rtv) => ![stableRtv, ltsRtv].includes(rtv)
-  );
+  const otherRtvs = [...rtvs.values()]
+    .filter((rtv) => ![stableRtv, ltsRtv].includes(rtv))
+    // Order this list by AMP version number, then by RTV prefix.
+    .sort((a, b) => Number(a.slice(0, 2)) - Number(b.slice(0, 2)))
+    .sort((a, b) => Number(a.slice(2)) - Number(b.slice(2)));
 
   return new Response(
     JSON.stringify({
