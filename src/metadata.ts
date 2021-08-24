@@ -38,10 +38,14 @@ export async function rtvMetadata(request: ServerRequest): Promise<Response> {
   const kvSpaces = list(RTV, {metadata: false});
   const rtvs = new Map<string, string>();
   for await (const kvSpace of kvSpaces) {
-    for (const channel of kvSpace.keys) {
-      const rtv = (await read<string>(RTV, channel, {type: 'text'})) as string;
-      rtvs.set(channel, rtv);
-    }
+    await Promise.all(
+      kvSpace.keys.map(async (channel) => {
+        const rtv = await read<string>(RTV, channel, {
+          type: 'text',
+        });
+        rtvs.set(channel, rtv as string);
+      })
+    );
   }
 
   const stableRtv = rtvs.get(Channel.STABLE);
