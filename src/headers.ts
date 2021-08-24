@@ -59,8 +59,9 @@ export enum ContentType {
 /**
  * Creates a new Response object with default HTTP headers.
  *
- * Drops all existing HTTP headers on the input response, except Content-Type
- * which gets reused if not overridden with the `contentType` parameter.
+ * Drops all existing HTTP headers on the input response, except for the
+ * Content-Type header which is kept. Note that Content-Type can be overridden
+ * using the `extraHeaders` parameter.
  *
  * @param inputResponse - object to add headers to.
  * @param cacheControl - Cache-Control header value.
