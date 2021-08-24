@@ -37,7 +37,7 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
-router.add('GET', '/rtv/:rtv/*', async ({headers, params, path}) => {
+router.add('GET', '/rtv/:rtv/*', async ({cf, params, path}) => {
   console.log('Serving versioned request to', path);
 
   const response = await fetchImmutableAmpFileOrDie(
@@ -45,9 +45,8 @@ router.add('GET', '/rtv/:rtv/*', async ({headers, params, path}) => {
     `/${params.wild}`
   );
   if (path.includes('/v0/amp-geo-')) {
-    const countryIso = headers.get('cf-ipcountry');
     return withHeaders(
-      await injectAmpGeo(response, countryIso),
+      await injectAmpGeo(response, cf.country, cf.regionCode),
       CacheControl.AMP_GEO
     );
   }
@@ -77,11 +76,10 @@ async function unversionedAmpGeoRequest(req: ServerRequest): Promise<Response> {
   console.log('Serving unversioned amp-geo request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const countryIso = req.headers.get('cf-ipcountry');
-  const response = await await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
 
   return withHeaders(
-    await injectAmpGeo(response, countryIso),
+    await injectAmpGeo(response, req.cf.country, req.cf.regionCode),
     CacheControl.AMP_GEO
   );
 }
