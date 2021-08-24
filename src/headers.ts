@@ -73,31 +73,3 @@ export function withHeaders(
 
   return response;
 }
-
-interface CacheControlOptions {
-  // true for LTS requests.
-  isLts: boolean;
-
-  // true for entry files (e.g., /v0.js, /amp4ads-v0.mjs).
-  isEntryFile: boolean;
-
-  // true for service worker files (e.g., /sw/amp-sw.js).
-  isServiceWorkerFile: boolean;
-}
-
-/**
- * Determines Cache-Control header value based on options.
- *
- * @param options - request options.
- * @returns string value for the determined Cache-Control header.
- */
-export function cacheControlFor(options: CacheControlOptions): string {
-  if (options.isLts) {
-    return CacheControl.LTS;
-  } else if (options.isEntryFile) {
-    return CacheControl.ENTRY_FILE;
-  } else if (options.isServiceWorkerFile) {
-    return CacheControl.SERVICE_WORKER_FILE;
-  }
-  return CacheControl.DEFAULT;
-}

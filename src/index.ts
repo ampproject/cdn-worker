@@ -3,23 +3,13 @@
  */
 
 import {Router} from 'worktop';
+import {ServerRequest} from 'worktop/request';
 
-import {
-  CacheControl,
-  ContentType,
-  HeaderKeys,
-  cacheControlFor,
-  withHeaders,
-} from './headers';
+import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
 import {injectAmpExp, injectAmpGeo} from './injectors';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
-import {fetchImmutableOrDie} from './storage';
-
-// TODO(danielrozenberg): replace this with a storage location that serves the
-// raw compiled binaries without any of the modifications that the Google AMP
-// CDN performs.
-const STORAGE_BASE_URL = 'https://cdn.ampproject.org';
+import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
@@ -36,7 +26,7 @@ router.onerror = (req, res, status, error) =>
 router.add('GET', '/', () => Response.redirect('https://amp.dev/'));
 
 router.add('GET', '/favicon.ico', () => {
-  return fetchImmutableOrDie('https://amp.dev/static/img/favicon.png');
+  return fetchImmutableUrlOrDie('https://amp.dev/static/img/favicon.png');
 });
 
 router.add('GET', '/rtv/metadata', async (request) => {
@@ -47,59 +37,106 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
-router.add('GET', '/rtv/:rtv/*', async ({headers, path}) => {
+router.add('GET', '/rtv/:rtv/*', async ({headers, params, path}) => {
   console.log('Serving versioned request to', path);
-  const countryIso = headers.get('cf-ipcountry');
 
-  const storageUrl = `${STORAGE_BASE_URL}${path}`;
-  const response = await fetchImmutableOrDie(storageUrl);
-
+  const response = await fetchImmutableAmpFileOrDie(
+    params.rtv,
+    `/${params.wild}`
+  );
   if (path.includes('/v0/amp-geo-')) {
+    const countryIso = headers.get('cf-ipcountry');
     return withHeaders(
       await injectAmpGeo(response, countryIso),
       CacheControl.AMP_GEO
     );
   }
+
   return withHeaders(response, CacheControl.STATIC_RTV_FILE);
 });
 
-router.add('GET', '*', async (req) => {
-  let {path} = req;
-  const {headers} = req;
-  console.log('Serving unversioned request to', path);
-  const isLts = path.startsWith('/lts/');
-  const countryIso = headers.get('cf-ipcountry');
+router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
+  console.log('Serving unversioned entry-file request to', req.path);
 
-  const rtv = await chooseRtv(req, isLts);
-  path = path.replace(/^\/lts/, '');
-  const cacheControlOptions = {
-    isLts,
-    isEntryFile: /^\/[\w-]+\.m?js$/.test(path),
-    isServiceWorkerFile: path.startsWith('/sw/'),
-  };
+  const rtv = await chooseRtv(req);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
 
-  console.log('Chose RTV', rtv);
-  const storageUrl = `${STORAGE_BASE_URL}/rtv/${rtv}${path}`;
-  const response = await fetchImmutableOrDie(storageUrl);
+  return withHeaders(
+    await injectAmpExp(response, rtv),
+    CacheControl.ENTRY_FILE
+  );
+});
 
-  if (!isLts && (path == '/v0.js' || path == '/v0.mjs')) {
-    return withHeaders(
-      await injectAmpExp(response, rtv),
-      cacheControlFor(cacheControlOptions)
-    );
-  } else if (path.includes('/v0/amp-geo-')) {
-    return withHeaders(
-      await injectAmpGeo(response, countryIso),
-      CacheControl.AMP_GEO
-    );
-  } else if (path === '/experiments.html') {
-    return withHeaders(
-      response,
-      CacheControl.ENTRY_FILE,
-      EXPERIMENTS_EXTRA_HEADERS
-    );
-  }
-  return withHeaders(response, cacheControlFor(cacheControlOptions));
+/**
+ * Handles unversioned amp-geo requests.
+ *
+ * @param req - the request object.
+ * @returns Response object with injected amp-geo content.
+ */
+async function unversionedAmpGeoRequest(req: ServerRequest): Promise<Response> {
+  console.log('Serving unversioned amp-geo request to', req.path);
+
+  const rtv = await chooseRtv(req);
+  const countryIso = req.headers.get('cf-ipcountry');
+  const response = await await fetchImmutableAmpFileOrDie(rtv, req.path);
+
+  return withHeaders(
+    await injectAmpGeo(response, countryIso),
+    CacheControl.AMP_GEO
+  );
+}
+
+router.add('GET', '/lts/v0/amp-geo-*', unversionedAmpGeoRequest);
+router.add('GET', '/v0/amp-geo-*', unversionedAmpGeoRequest);
+
+/**
+ * Handles unversioned requests to /experiments.html.
+ *
+ * @param request - the request object.
+ * @returns Response object with experiments.html content.
+ */
+async function unversionedExperimentsRequest(
+  req: ServerRequest
+): Promise<Response> {
+  console.log('Serving unversioned experiments.html request to', req.path);
+
+  const rtv = await chooseRtv(req);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+
+  return withHeaders(
+    response,
+    CacheControl.ENTRY_FILE,
+    EXPERIMENTS_EXTRA_HEADERS
+  );
+}
+
+router.add('GET', '/lts/experiments.html', unversionedExperimentsRequest);
+router.add('GET', '/experiments.html', unversionedExperimentsRequest);
+
+router.add('GET', '/lts/*', async (req) => {
+  console.log('Serving unversioned LTS request to', req.path);
+  const rtv = await chooseRtv(req);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+
+  return withHeaders(response, CacheControl.LTS);
+});
+
+router.add('GET', '/sw/*', async (req) => {
+  console.log('Serving unversioned service worker request to', req.path);
+
+  const rtv = await chooseRtv(req);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+
+  return withHeaders(response, CacheControl.SERVICE_WORKER_FILE);
+});
+
+router.add('GET', '/*', async (req) => {
+  console.log('Serving unversioned request to', req.path);
+
+  const rtv = await chooseRtv(req);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+
+  return withHeaders(response, CacheControl.DEFAULT);
 });
 
 addEventListener('fetch', async (event) => {

@@ -24,13 +24,9 @@ export enum Channel {
  * Chooses which RTV to use for a requested unversioned file.
  *
  * @param request - the request object.
- * @param isLts - whether this is a request for an LTS file.
  * @returns the chosen RTV.
  */
-export async function chooseRtv(
-  request: ServerRequest,
-  isLts: boolean
-): Promise<string> {
+export async function chooseRtv(request: ServerRequest): Promise<string> {
   // Choose which channel to opt in to based on the following order:
   const channelChooser = [
     // Opt-in cookie value:
@@ -38,7 +34,7 @@ export async function chooseRtv(
     // Query param (?optin=channel-name):
     request.query.get('optin'),
     // LTS request:
-    isLts && Channel.LTS,
+    request.path.startsWith('/lts') && Channel.LTS,
     // Default to Stable:
     Channel.STABLE,
   ].filter(
@@ -48,6 +44,7 @@ export async function chooseRtv(
   for (const channel of channelChooser) {
     const rtv = await read<string>(RTV, channel, {type: 'text'});
     if (rtv) {
+      console.log('Chose RTV', rtv);
       return rtv;
     }
   }
