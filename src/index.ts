@@ -37,10 +37,10 @@ import {fetchImmutableOrDie} from './storage';
 // CDN performs.
 const STORAGE_BASE_URL = 'https://cdn.ampproject.org';
 
-const RTV_METADATA_EXTRA_HEADERS = new Map([
+const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
 ]);
-const EXPERIMENTS_EXTRA_HEADERS = new Map([
+const EXPERIMENTS_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.X_FRAME_OPTIONS, 'deny'],
 ]);
 

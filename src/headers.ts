@@ -71,7 +71,7 @@ export enum ContentType {
 export function withHeaders(
   inputResponse: Response,
   cacheControl: string,
-  extraHeaders = new Map<string, string>([])
+  extraHeaders?: ReadonlyMap<HeaderKeys, string>
 ): Response {
   const response = new Response(inputResponse.body);
 
@@ -83,7 +83,7 @@ export function withHeaders(
   response.headers.set(HeaderKeys.CACHE_CONTROL, cacheControl);
   response.headers.set(HeaderKeys.CONTENT_TYPE, contentType);
 
-  [...SHARED_HEADERS, ...extraHeaders].forEach(([header, value]) => {
+  [...SHARED_HEADERS, ...(extraHeaders ?? [])].forEach(([header, value]) => {
     response.headers.set(header, value);
   });
 
