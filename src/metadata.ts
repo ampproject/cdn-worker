@@ -4,7 +4,6 @@
  */
 
 import {KV, list, read} from 'worktop/kv';
-import {ServerRequest} from 'worktop/request';
 
 import {Channel} from './rtv';
 
@@ -14,9 +13,10 @@ declare const RTV: KV.Namespace;
 /**
  * Dynamically generates the /rtv/metadata JSON file.
  *
+ * @param origin - origin part of the request URL.
  * @returns Response object with the /rtv/metadata JSON file.
  */
-export async function rtvMetadata(request: ServerRequest): Promise<Response> {
+export async function rtvMetadata(origin: string): Promise<Response> {
   console.log('Generating /rtv/metadata');
 
   const kvSpaces = list(RTV, {metadata: false});
@@ -43,12 +43,12 @@ export async function rtvMetadata(request: ServerRequest): Promise<Response> {
   return new Response(
     JSON.stringify({
       ampRuntimeVersion: stableRtv,
-      ampCssUrl: stableRtv && `${request.origin}/rtv/${stableRtv}/v0.css`,
+      ampCssUrl: stableRtv && `${origin}/rtv/${stableRtv}/v0.css`,
       // TODO(danielrozenberg): currently 0, really.
       canaryPercentage: '0.005',
       diversions: otherRtvs,
       ltsRuntimeVersion: ltsRtv,
-      ltsCssUrl: ltsRtv && `${request.origin}/rtv/${ltsRtv}/v0.css`,
+      ltsCssUrl: ltsRtv && `${origin}/rtv/${ltsRtv}/v0.css`,
     })
   );
 }

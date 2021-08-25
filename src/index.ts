@@ -31,7 +31,7 @@ router.add('GET', '/favicon.ico', () => {
 
 router.add('GET', '/rtv/metadata', async (request) => {
   return withHeaders(
-    await rtvMetadata(request),
+    await rtvMetadata(request.origin),
     CacheControl.RTV_METADATA_FILE,
     RTV_METADATA_EXTRA_HEADERS
   );
