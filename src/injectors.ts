@@ -79,7 +79,9 @@ export async function injectAmpGeo(
   }
   console.log('Injecting amp-geo ISO country code');
   const text = await response.text();
-  const injectIsoCode = regionIso ? `${countryIso}-${regionIso}` : countryIso;
+  const injectIsoCode = regionIso
+    ? `${countryIso} ${countryIso}-${regionIso}`
+    : countryIso;
   return new Response(
     text.replace(
       '{{AMP_ISO_COUNTRY_HOTPATCH}}',
