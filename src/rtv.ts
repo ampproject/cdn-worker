@@ -42,7 +42,12 @@ export async function chooseRtv(request: ServerRequest): Promise<string> {
   ) as string[]; /* Guaranteed after the filter. */
 
   for (const channel of channelChooser) {
-    const rtv = await read<string>(RTV, channel, {type: 'text'});
+    if (/^\d{15}$/.exec(channel)) {
+      // Requests directly opted in to an RTV.
+      return channel;
+    }
+
+    const rtv = await read(RTV, channel, {type: 'text'});
     if (rtv) {
       console.log('Chose RTV', rtv);
       return rtv;
