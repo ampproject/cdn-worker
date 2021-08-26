@@ -2,6 +2,8 @@
  * Contains functions that interact with the backing storage.
  */
 
+import {FetchError} from './errors';
+
 // TODO(danielrozenberg): replace this with a storage location that serves the
 // raw compiled binaries without any of the modifications that the Google AMP
 // CDN performs.
@@ -21,12 +23,10 @@ export async function fetchImmutableUrlOrDie(url: string): Promise<Response> {
   const response = await fetch(url, {
     cf: {cacheEverything: true, cacheTtl: 31536000},
   });
-  return response.ok
-    ? response
-    : new Response(`🌩 ${response.status} Error: ${response.statusText}`, {
-        status: response.status,
-        statusText: response.statusText,
-      });
+  if (!response.ok) {
+    throw new FetchError(response.status, response.statusText);
+  }
+  return response;
 }
 
 /**

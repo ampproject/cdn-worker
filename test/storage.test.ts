@@ -4,6 +4,7 @@
 
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 
+import {FetchError} from '../src/errors';
 import {
   fetchImmutableAmpFileOrDie,
   fetchImmutableUrlOrDie,
@@ -42,12 +43,9 @@ describe('storage', () => {
     it('throws an error when the response is not 200 OK', async () => {
       fetchMock.mockResponse('Kittens.', {status: 404});
 
-      const response = await fetchImmutableUrlOrDie(
-        'https://example.com/kittens.txt'
-      );
-
-      await expect(response.text()).resolves.toEqual('🌩 404 Error: Not Found');
-      expect(response.status).toEqual(404);
+      await expect(() =>
+        fetchImmutableUrlOrDie('https://example.com/kittens.txt')
+      ).rejects.toThrowError(new FetchError(404, 'Not Found'));
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith('https://example.com/kittens.txt', {
