@@ -18,6 +18,7 @@
     },
     {
       "files": [".prettierrc", "*.json"],
+      "excludeFiles": ["package-lock.json"],
       "options": {"parser": "json"}
     }
   ]
