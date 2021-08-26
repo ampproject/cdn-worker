@@ -23,7 +23,10 @@ export async function fetchImmutableUrlOrDie(url: string): Promise<Response> {
   });
   return response.ok
     ? response
-    : new Response(`🌩 ${response.status} Error: ${response.statusText}`);
+    : new Response(`🌩 ${response.status} Error: ${response.statusText}`, {
+        status: response.status,
+        statusText: response.statusText,
+      });
 }
 
 /**
