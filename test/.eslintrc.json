@@ -6,6 +6,8 @@
     "worker": true
   },
   "globals": {
-    "fetchMock": true
+    "FetchEvent": true,
+    "fetchMock": true,
+    "global": true
   }
 }
