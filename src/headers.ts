@@ -4,10 +4,6 @@
 
 const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['Access-Control-Allow-Origin', '*'],
-  [
-    'Content-Security-Policy',
-    "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/lts/ https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/sw/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0.mjs https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp.withgoogle.com/csp/amp",
-  ],
   ['Cross-Origin-Resource-Policy', 'cross-origin'],
   ['Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'],
   ['Timing-Allow-Origin', '*'],
@@ -17,6 +13,7 @@ const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
 
 export enum HeaderKeys {
   CACHE_CONTROL = 'Cache-Control',
+  CONTENT_SECURITY_POLICY = 'Content-Security-Policy',
   CONTENT_TYPE = 'Content-Type',
   X_FRAME_OPTIONS = 'X-Frame-Options',
 }

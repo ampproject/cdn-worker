@@ -274,6 +274,10 @@ describe('router', () => {
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.ENTRY_FILE
         );
+        expect(response.headers.get('x-frame-options')).toEqual('deny');
+        expect(response.headers.get('content-security-policy')).toContain(
+          'default-src * blob: data:;'
+        );
         expect(await response.text()).toEqual('<html>…</html>');
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(

@@ -28,8 +28,6 @@ describe('headers', () => {
     expect(Object.fromEntries(outputResponse.headers.entries())).toMatchObject({
       'access-control-allow-origin': '*',
       'cache-control': 'private, max-age=604800, stale-while-revalidate=604800',
-      'content-security-policy':
-        "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/lts/ https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/sw/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0.mjs https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp.withgoogle.com/csp/amp",
       'content-type': 'text/javascript',
       'cross-origin-resource-policy': 'cross-origin',
       'strict-transport-security':
