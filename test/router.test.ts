@@ -288,7 +288,7 @@ describe('router', () => {
     );
 
     it.each(['/lts/v0.js', '/lts/v0/amp-ad-0.1.mjs'])(
-      'responds to LTS requests',
+      'responds to LTS requests to %s',
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
@@ -312,7 +312,7 @@ describe('router', () => {
     );
 
     it.each(['/sw/amp-sw.js', '/lts/sw/amp-sw.js'])(
-      'responds to service worker requests',
+      'responds to service worker requests to %s',
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
