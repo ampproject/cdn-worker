@@ -76,7 +76,7 @@ router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
   );
 });
 
-router.add('GET', /(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
+router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
   console.log('Serving unversioned amp-geo request to', req.path);
 
   const rtv = await chooseRtv(req);
