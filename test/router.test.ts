@@ -157,7 +157,7 @@ describe('router', () => {
       );
     });
 
-    it('injects requests to amp-geo with country code', async () => {
+    it('injects requests to amp-geo with inferred country code', async () => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
           headers: {'Content-Type': 'text/javascript'},
@@ -185,6 +185,40 @@ describe('router', () => {
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
         'br',
+        undefined
+      );
+    });
+
+    it('injects requests to amp-geo with query-param supplied country code', async () => {
+      fetchImmutableAmpFileOrDieMock.mockResolvedValue(
+        new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
+          headers: {'Content-Type': 'text/javascript'},
+        })
+      );
+      injectAmpGeoMock.mockImplementation(async (response) => response);
+
+      const response = await router.run(
+        makeFetchEvent(
+          '/rtv/012105150310000/v0/amp-geo-0.1.js?dev-country-code=zx%20zx-yw'
+        )
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('cache-control')).toEqual(
+        CacheControl.AMP_GEO
+      );
+      expect(await response.text()).toEqual(
+        '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
+      );
+
+      expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
+        '012105150310000',
+        '/v0/amp-geo-0.1.js'
+      );
+      expect(injectAmpGeoMock).toHaveBeenCalledWith(
+        expect.any(Response),
+        'zx zx-yw',
         undefined
       );
     });
@@ -226,7 +260,7 @@ describe('router', () => {
     );
 
     it.each(['/v0/amp-geo-0.1.js', '/lts/v0/amp-geo-latest.mjs'])(
-      'injects requests to %s with country code',
+      'injects requests to %s with inferred country code',
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
@@ -253,6 +287,41 @@ describe('router', () => {
         expect(injectAmpGeoMock).toHaveBeenCalledWith(
           expect.any(Response),
           'br',
+          undefined
+        );
+      }
+    );
+
+    it.each(['/v0/amp-geo-0.1.js', '/lts/v0/amp-geo-latest.mjs'])(
+      'injects requests to %s with query-param supplied country code',
+      async (path) => {
+        fetchImmutableAmpFileOrDieMock.mockResolvedValue(
+          new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
+            headers: {'Content-Type': 'text/javascript'},
+          })
+        );
+        injectAmpGeoMock.mockImplementation(async (response) => response);
+
+        const response = await router.run(
+          makeFetchEvent(`${path}?dev-country-code=zx%20zx-yw`)
+        );
+
+        expect(response.status).toEqual(200);
+        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('cache-control')).toEqual(
+          CacheControl.AMP_GEO
+        );
+        expect(await response.text()).toEqual(
+          '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
+        );
+
+        expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
+          '012105150310000',
+          path
+        );
+        expect(injectAmpGeoMock).toHaveBeenCalledWith(
+          expect.any(Response),
+          'zx zx-yw',
           undefined
         );
       }

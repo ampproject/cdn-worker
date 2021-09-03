@@ -47,8 +47,11 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
-router.add('GET', '/rtv/:rtv/*', async ({cf, params, path}) => {
+router.add('GET', '/rtv/:rtv/*', async ({cf, params, path, query}) => {
   console.log('Serving versioned request to', path);
+
+  const country = query.get('dev-country-code') ?? cf.country;
+  const regionCode = query.get('dev-country-code') ? undefined : cf.regionCode;
 
   const response = await fetchImmutableAmpFileOrDie(
     params.rtv,
@@ -56,7 +59,7 @@ router.add('GET', '/rtv/:rtv/*', async ({cf, params, path}) => {
   );
   if (path.includes('/v0/amp-geo-')) {
     return withHeaders(
-      await injectAmpGeo(response, cf.country, cf.regionCode),
+      await injectAmpGeo(response, country, regionCode),
       CacheControl.AMP_GEO
     );
   }
@@ -77,13 +80,17 @@ router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
 });
 
 router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
-  console.log('Serving unversioned amp-geo request to', req.path);
+  const {cf, path, query} = req;
+  console.log('Serving unversioned amp-geo request to', path);
+
+  const country = query.get('dev-country-code') ?? cf.country;
+  const regionCode = query.get('dev-country-code') ? undefined : cf.regionCode;
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, path);
 
   return withHeaders(
-    await injectAmpGeo(response, req.cf.country, req.cf.regionCode),
+    await injectAmpGeo(response, country, regionCode),
     CacheControl.AMP_GEO
   );
 });
