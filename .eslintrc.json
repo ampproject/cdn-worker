@@ -1,0 +1,122 @@
+{
+  "root": true,
+  "extends": [
+    "typescript",
+    "prettier",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint/eslint-plugin",
+    "google-camelcase",
+    "import",
+    "prettier",
+    "simple-import-sort",
+    "sort-destructure-keys",
+    "tsdoc"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
+    }
+  },
+  "env": {
+    "es2020": true,
+    "worker": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "reportUnusedDisableDirectives": true,
+  "rules": {
+    "curly": 2,
+    "google-camelcase/google-camelcase": 2,
+
+    // Rules restricting/standardizing import statements
+    "import/export": 2,
+    "import/first": 2,
+    "import/named": 2,
+    "import/namespace": 2,
+    "import/no-deprecated": 2,
+    "import/no-absolute-path": 2,
+    "import/no-unresolved": 2,
+    "import/no-useless-path-segments": ["error", {"noUselessIndex": true}],
+    "import/order": [
+      2,
+      {
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "newlines-between": "always"
+      }
+    ],
+
+    "no-alert": 2,
+    "no-cond-assign": 2,
+    "no-debugger": 2,
+    "no-div-regex": 2,
+    "no-dupe-keys": 2,
+    "no-eval": 2,
+    "no-extend-native": 2,
+    "no-extra-bind": 2,
+    "no-implicit-coercion": [
+      2,
+      {
+        "boolean": false
+      }
+    ],
+    "no-implied-eval": 2,
+    "no-iterator": 2,
+    "no-lone-blocks": 2,
+    "no-native-reassign": 2,
+    "no-redeclare": 2,
+    "no-restricted-globals": [2, "error", "event", "Animation"],
+    "no-script-url": 2,
+    "no-self-compare": 2,
+    "no-sequences": 2,
+    "no-throw-literal": 2,
+    "no-unused-expressions": 0,
+    "no-useless-call": 2,
+    "no-useless-concat": 2,
+    "no-undef": 2,
+    "no-var": 2,
+    "object-shorthand": [
+      2,
+      "properties",
+      {
+        "avoidQuotes": true
+      }
+    ],
+    "prefer-const": 2,
+    "prettier/prettier": 2,
+    "radix": 2,
+    "require-jsdoc": [
+      2,
+      {
+        "require": {
+          "FunctionDeclaration": true,
+          "MethodDefinition": true,
+          "ClassDeclaration": false,
+          "ArrowFunctionExpression": false,
+          "FunctionExpression": false
+        }
+      }
+    ],
+    "sort-destructure-keys/sort-destructure-keys": 2,
+    "sort-imports": [
+      2,
+      {
+        "allowSeparatedGroups": true,
+        "ignoreDeclarationSort": true
+      }
+    ],
+    "tsdoc/syntax": 2
+  }
+}
