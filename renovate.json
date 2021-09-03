@@ -1,0 +1,24 @@
+{
+  "extends": ["config:base"],
+  "node": {
+    "supportPolicy": ["lts_latest"]
+  },
+  "commitMessagePrefix": "📦",
+  "timezone": "America/Los_Angeles",
+  "schedule": "after 12am every weekday",
+  "dependencyDashboard": true,
+  "prBodyColumns": ["Package", "Update", "Type", "Change", "Package file"],
+  "packageRules": [
+    {
+      "groupName": "core devDependencies",
+      "matchFiles": ["package.json"],
+      "automerge": true
+    },
+    {
+      "groupName": "ampproject dependencies",
+      "matchFiles": ["package.json"],
+      "matchDepTypes": ["dependencies"],
+      "automerge": false
+    }
+  ]
+}
