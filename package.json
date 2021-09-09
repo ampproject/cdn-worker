@@ -32,7 +32,7 @@
     "eslint-plugin-tsdoc": "0.2.14",
     "jest": "27.1.1",
     "jest-fetch-mock": "3.0.3",
-    "prettier": "2.3.2",
+    "prettier": "2.4.0",
     "service-worker-mock": "2.0.5",
     "ts-jest": "27.0.5",
     "ts-loader": "9.2.5",
