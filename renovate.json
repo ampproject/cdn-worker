@@ -5,17 +5,18 @@
   },
   "commitMessagePrefix": "📦",
   "timezone": "America/Los_Angeles",
-  "schedule": "after 12am every weekday",
+  "schedule": "after 12am on monday",
   "dependencyDashboard": true,
   "prBodyColumns": ["Package", "Update", "Type", "Change", "Package file"],
   "packageRules": [
     {
-      "groupName": "core devDependencies",
+      "groupName": "devDependencies",
       "matchFiles": ["package.json"],
+      "matchDepTypes": ["devDependencies"],
       "automerge": true
     },
     {
-      "groupName": "ampproject dependencies",
+      "groupName": "dependencies",
       "matchFiles": ["package.json"],
       "matchDepTypes": ["dependencies"],
       "automerge": false
