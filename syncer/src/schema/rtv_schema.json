@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "stable"
+  ],
+  "properties": {
+    "stable": {
+      "type": "string",
+      "pattern": "^01\\d{13}$"
+    },
+    "control": {
+      "type": "string",
+      "pattern": "^02\\d{13}$"
+    },
+    "lts": {
+      "type": "string",
+      "pattern": "^01\\d{13}$"
+    },
+    "beta-opt-in": {
+      "type": "string",
+      "pattern": "^03\\d{13}$"
+    },
+    "beta-traffic": {
+      "type": "string",
+      "pattern": "^03\\d{13}$"
+    },
+    "experimental-opt-in": {
+      "type": "string",
+      "pattern": "^00\\d{13}$"
+    },
+    "experimental-traffic": {
+      "type": "string",
+      "pattern": "^00\\d{13}$"
+    },
+    "nightly": {
+      "type": "string",
+      "pattern": "^04\\d{13}$"
+    },
+    "nightly-control": {
+      "type": "string",
+      "pattern": "^05\\d{13}$"
+    },
+    "experimentA": {
+      "type": "string",
+      "pattern": "^(10|21)\\d{13}$"
+    },
+    "experimentA-control": {
+      "type": "string",
+      "pattern": "^20\\d{13}$"
+    },
+    "experimentB": {
+      "type": "string",
+      "pattern": "^(11|23)\\d{13}$"
+    },
+    "experimentB-control": {
+      "type": "string",
+      "pattern": "^22\\d{13}$"
+    },
+    "experimentC": {
+      "type": "string",
+      "pattern": "^(12|25)\\d{13}$"
+    },
+    "experimentC-control": {
+      "type": "string",
+      "pattern": "^24\\d{13}$"
+    }
+  },
+  "additionalProperties": false
+}

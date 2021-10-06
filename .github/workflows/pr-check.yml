@@ -9,19 +9,22 @@ on:
       - main
 
 jobs:
-  server:
+  test:
+    strategy:
+      matrix:
+        directory: ['server', 'syncer']
     if: github.repository == 'ampproject/cdn-worker'
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: server
+        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 16
           cache: 'npm'
-          cache-dependency-path: server/package-lock.json
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
       - run: npm ci
       - run: npm run lint
       - run: npm test

@@ -1,25 +1,33 @@
 {
-  "name": "amp-cdn-worker-server",
+  "name": "amp-cdn-worker-syncer",
   "version": "1.0.0",
-  "description": "Cloudflare Worker code for the AMP runtime CDN",
+  "description": "Cloudflare Worker code for GitHub App that syncs configuration files",
   "main": "dist/worker.js",
   "scripts": {
+    "compile-schema-validators": "mkdir -p src/schema/generated && ajv compile -s src/schema/amp_exp_schema.json -o src/schema/generated/amp_exp_schema.js && ajv compile -s src/schema/rtv_schema.json -o src/schema/generated/rtv_schema.js",
+    "prebuild": "npm run compile-schema-validators",
     "build": "webpack",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "prelint": "npm run compile-schema-validators",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "pretest": "npm run compile-schema-validators",
     "test": "jest --config jestconfig.json --verbose --silent"
   },
   "author": "The AMP HTML Authors",
   "license": "Apache-2.0",
   "dependencies": {
+    "@octokit/app": "12.0.5",
+    "@octokit/webhooks-types": "4.8.1",
+    "@octokit/rest": "18.11.4",
+    "ajv": "8.6.3",
     "worktop": "0.7.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "2.2.2",
     "@types/jest": "27.0.2",
-    "@types/service-worker-mock": "2.0.1",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/eslint-plugin": "4.32.0",
+    "@typescript-eslint/parser": "4.32.0",
+    "ajv-cli": "5.0.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-typescript": "3.0.0",
@@ -33,11 +41,10 @@
     "jest": "27.2.4",
     "jest-fetch-mock": "3.0.3",
     "prettier": "2.4.1",
-    "service-worker-mock": "2.0.5",
     "ts-jest": "27.0.5",
     "ts-loader": "9.2.6",
     "typescript": "4.4.3",
-    "webpack": "5.56.1",
+    "webpack": "5.55.1",
     "webpack-cli": "4.8.0"
   }
 }
