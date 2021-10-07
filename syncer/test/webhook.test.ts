@@ -1,7 +1,3 @@
-/**
- * Tests for webhook.ts.
- */
-
 import type {Octokit} from '@octokit/rest';
 import {mocked} from 'ts-jest/utils';
 

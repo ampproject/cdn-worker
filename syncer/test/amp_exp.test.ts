@@ -1,7 +1,3 @@
-/**
- * Test for amp_exp.ts
- */
-
 import {Octokit} from '@octokit/rest';
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import {mocked} from 'ts-jest/utils';

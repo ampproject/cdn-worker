@@ -1,6 +1,4 @@
-/**
- * Request handler.
- */
+/** Request handler. */
 
 import type {App} from '@octokit/app';
 import type {WebhookEventName} from '@octokit/webhooks-types';

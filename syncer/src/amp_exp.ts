@@ -1,6 +1,4 @@
-/**
- * Client-side experiments (AMP_EXP) sync code.
- */
+/** Client-side experiments (AMP_EXP) sync code. */
 
 import type {Octokit} from '@octokit/rest';
 import type {PullRequestClosedEvent} from '@octokit/webhooks-types';
@@ -18,13 +16,7 @@ declare const AMP_EXP: KV.Namespace;
 export const AMP_EXP_FILE =
   'build-system/global-configs/client-side-experiments-config.json';
 
-/**
- * Sync AMP_EXP config.
- *
- * @param sha -
- * @param octokit -
- * @param payload -
- */
+/** Syncs AMP_EXP config. */
 export async function syncAmpExp(
   sha: string,
   octokit: Octokit,

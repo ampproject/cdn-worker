@@ -1,6 +1,4 @@
-/**
- * Contains request routing logic.
- */
+/** Contains request routing logic. */
 
 import {App} from '@octokit/app';
 import {Octokit} from '@octokit/rest';

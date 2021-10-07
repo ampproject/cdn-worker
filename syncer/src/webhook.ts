@@ -1,6 +1,4 @@
-/**
- * Contains the GitHub App code.
- */
+/** Contains the GitHub App code. */
 
 import type {Octokit} from '@octokit/rest';
 import type {PullRequestClosedEvent} from '@octokit/webhooks-types';

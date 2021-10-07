@@ -1,6 +1,4 @@
-/**
- * Contains functions that choose an RTV based on the request.
- */
+/** Contains functions that choose an RTV based on the request. */
 
 import type {Octokit} from '@octokit/rest';
 import type {PullRequestClosedEvent} from '@octokit/webhooks-types';
@@ -23,13 +21,7 @@ interface Versioning {
   [channel: string]: string;
 }
 
-/**
- * Sync versioning config.
- *
- * @param sha -
- * @param octokit -
- * @param payload -
- */
+/** Syncs versioning config. */
 export async function syncVersioning(
   sha: string,
   octokit: Octokit,

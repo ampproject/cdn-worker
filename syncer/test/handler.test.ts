@@ -1,7 +1,3 @@
-/**
- * Tests for handler.ts.
- */
-
 import type {App} from '@octokit/app';
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import {mocked} from 'ts-jest/utils';
