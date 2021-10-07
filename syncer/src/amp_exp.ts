@@ -54,7 +54,7 @@ export async function syncAmpExp(
       repo,
       'issue_number': pullRequest.number,
       body:
-        `This pull requested modified the [client-side experiments config file](https://github.com/${owner}/${repo}/blob/${sha}/${AMP_EXP_FILE}) but it does not pass schema validation.\n\n` +
+        `This pull request modified the [client-side experiments config file](https://github.com/${owner}/${repo}/blob/${sha}/${AMP_EXP_FILE}) but it does not pass schema validation.\n\n` +
         `Please send a follow-up pull request to fix this file using the [correct schema](https://github.com/${owner}/${repo}/blob/${sha}/build-system/global-configs/README.md#client-side-experiments-configjson).`,
     });
     return;
