@@ -49,7 +49,7 @@ export async function syncAmpExp(
     });
   } catch (error) {
     console.log(AMP_EXP_FILE, 'fails validation:', error);
-    octokit.rest.issues.createComment({
+    await octokit.rest.issues.createComment({
       owner,
       repo,
       'issue_number': pullRequest.number,
@@ -57,6 +57,5 @@ export async function syncAmpExp(
         `This pull request modified the [client-side experiments config file](https://github.com/${owner}/${repo}/blob/${sha}/${AMP_EXP_FILE}) but it does not pass schema validation.\n\n` +
         `Please send a follow-up pull request to fix this file using the [correct schema](https://github.com/${owner}/${repo}/blob/${sha}/build-system/global-configs/README.md#client-side-experiments-configjson).`,
     });
-    return;
   }
 }

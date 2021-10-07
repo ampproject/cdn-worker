@@ -23,21 +23,23 @@ export async function handleRequest(
   }
 
   const id = request.headers.get('X-Github-Delivery');
-  const name = request.headers.get('X-Github-Event') as WebhookEventName;
-  const signature = request.headers
-    .get('X-Hub-Signature-256')
-    ?.slice('sha256='.length);
-  const payload = await request.json();
-
   if (!id) {
     return respondWithError('X-Github-Delivery header is missing', 400);
   }
+
+  const name = request.headers.get('X-Github-Event') as WebhookEventName;
   if (!name) {
     return respondWithError('X-Github-Event header is missing', 400);
   }
+
+  const signature = request.headers
+    .get('X-Hub-Signature-256')
+    ?.slice('sha256='.length);
   if (!signature) {
     return respondWithError('X-Hub-Signature-256 header is missing', 403);
   }
+
+  const payload = await request.json();
 
   try {
     console.log('Handling event', name, 'with ID =', id);
