@@ -94,5 +94,83 @@ describe('storage', () => {
         }
       );
     });
+
+    it.each([
+      ['00', '01'],
+      ['01', '01'],
+      ['02', '01'],
+      ['03', '01'],
+      ['04', '01'],
+      ['05', '01'],
+      ['10', '10'],
+      ['11', '11'],
+      ['12', '12'],
+      ['20', '01'],
+      ['21', '21'],
+      ['22', '01'],
+      ['23', '23'],
+      ['24', '01'],
+      ['25', '25'],
+    ])(
+      'v0/ requests to a %s-prefix file should serve the %s-prefix file',
+      async (requestedRtvPrefix, expectedRtvPrefix) => {
+        fetchMock.mockResponse('…var global=self;…', {status: 200});
+
+        const response = await fetchImmutableAmpFileOrDie(
+          `${requestedRtvPrefix}2105150310000`,
+          '/v0/amp-list-0.1.js'
+        );
+
+        await expect(response.text()).resolves.toEqual('…var global=self;…');
+        expect(response.status).toEqual(200);
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch).toHaveBeenCalledWith(
+          `https://cdn.ampproject.org/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          {
+            'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
+          }
+        );
+      }
+    );
+
+    it.each([
+      ['00', '01'],
+      ['01', '01'],
+      ['02', '01'],
+      ['03', '01'],
+      ['04', '01'],
+      ['05', '01'],
+      ['10', '10'],
+      ['11', '11'],
+      ['12', '12'],
+      ['20', '01'],
+      ['21', '21'],
+      ['22', '01'],
+      ['23', '23'],
+      ['24', '01'],
+      ['25', '25'],
+    ])(
+      'lts/v0/ requests to a %s-prefix file should serve the %s-prefix file',
+      async (requestedRtvPrefix, expectedRtvPrefix) => {
+        fetchMock.mockResponse('…var global=self;…', {status: 200});
+
+        const response = await fetchImmutableAmpFileOrDie(
+          `${requestedRtvPrefix}2105150310000`,
+          '/lts/v0/amp-list-0.1.js'
+        );
+
+        await expect(response.text()).resolves.toEqual('…var global=self;…');
+        expect(response.status).toEqual(200);
+
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch).toHaveBeenCalledWith(
+          `https://cdn.ampproject.org/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          {
+            'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
+          }
+        );
+      }
+    );
   });
 });
