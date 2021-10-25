@@ -25,7 +25,7 @@ describe('headers', () => {
 
     expect(outputResponse.status).toEqual(200);
     await expect(outputResponse.text()).resolves.toEqual('alert("!");');
-    expect(Object.fromEntries(outputResponse.headers.entries())).toMatchObject({
+    expect(Object.fromEntries(outputResponse.headers)).toMatchObject({
       'access-control-allow-origin': '*',
       'cache-control': 'private, max-age=604800, stale-while-revalidate=604800',
       'content-type': 'text/javascript',
@@ -49,7 +49,7 @@ describe('headers', () => {
       new Map([[HeaderKeys.X_FRAME_OPTIONS, 'deny']])
     );
 
-    expect(Object.fromEntries(outputResponse.headers.entries())).toMatchObject(
+    expect(Object.fromEntries(outputResponse.headers)).toMatchObject(
       expect.objectContaining({
         'x-frame-options': 'deny',
       })
@@ -67,7 +67,7 @@ describe('headers', () => {
       new Map([[HeaderKeys.CONTENT_TYPE, 'text/html']])
     );
 
-    expect(Object.fromEntries(outputResponse.headers.entries())).toMatchObject(
+    expect(Object.fromEntries(outputResponse.headers)).toMatchObject(
       expect.objectContaining({
         'content-type': 'text/html',
       })
@@ -81,7 +81,7 @@ describe('headers', () => {
 
     const outputResponse = withHeaders(inputResponse, CacheControl.DEFAULT);
 
-    expect(Object.fromEntries(outputResponse.headers.entries())).toMatchObject(
+    expect(Object.fromEntries(outputResponse.headers)).toMatchObject(
       expect.objectContaining({
         'content-type': 'text/plain',
       })
