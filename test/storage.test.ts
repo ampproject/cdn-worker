@@ -68,7 +68,7 @@ describe('storage', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        'https://cdn.ampproject.org/rtv/002105150310000/v0.js',
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/002105150310000/v0.js',
         {
           'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
         }
@@ -88,7 +88,7 @@ describe('storage', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        'https://cdn.ampproject.org/rtv/002105150310000/v0.js',
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/002105150310000/v0.js',
         {
           'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
         }
@@ -126,7 +126,7 @@ describe('storage', () => {
 
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(
-          `https://cdn.ampproject.org/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
           {
             'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
           }
@@ -165,7 +165,7 @@ describe('storage', () => {
 
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(
-          `https://cdn.ampproject.org/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
           {
             'cf': {'cacheEverything': true, 'cacheTtl': 31536000},
           }

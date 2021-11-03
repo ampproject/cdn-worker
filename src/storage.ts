@@ -4,10 +4,7 @@
 
 import {FetchError} from './errors';
 
-// TODO(danielrozenberg): replace this with a storage location that serves the
-// raw compiled binaries without any of the modifications that the Google AMP
-// CDN performs.
-const STORAGE_BASE_URL = 'https://cdn.ampproject.org';
+const STORAGE_BASE_URL = 'https://storage.googleapis.com/org-cdn/org-cdn/rtv/';
 
 const V0_DEDUP_RTV_PREFIXES: ReadonlySet<string> = new Set([
   '00',
@@ -63,5 +60,5 @@ export async function fetchImmutableAmpFileOrDie(
     rtv = `01${rtv.slice(2)}`;
   }
 
-  return fetchImmutableUrlOrDie(`${STORAGE_BASE_URL}/rtv/${rtv}${path}`);
+  return fetchImmutableUrlOrDie(`${STORAGE_BASE_URL}${rtv}${path}`);
 }
