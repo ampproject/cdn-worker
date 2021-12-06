@@ -1,7 +1,7 @@
 {
   "preset": "ts-jest",
   "globals": {
-    "AMP_EXP": null,
+    "CONFIG": null,
     "RTV": null
   }
 }
