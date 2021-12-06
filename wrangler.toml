@@ -6,7 +6,7 @@ route = ""
 workers_dev = true
 kv_namespaces = [
   { binding = "RTV", id = "f33b97f2e1434004975c0d8553f70488", preview_id = "192df3dff1b345ce8e7c794329bb7ccd" },
-  { binding = "AMP_EXP", id = "b03e5db05f3e4d068508da267e248949", preview_id = "69318ded67c0477b85d73ec801b47543" }
+  { binding = "CONFIG", id = "b03e5db05f3e4d068508da267e248949", preview_id = "69318ded67c0477b85d73ec801b47543" }
 ]
 
 [build]

@@ -5,7 +5,7 @@
 import {KV, read} from 'worktop/kv';
 
 // KV Binding via `wrangler.toml` config.
-declare const AMP_EXP: KV.Namespace;
+declare const CONFIG: KV.Namespace;
 
 interface AmpExp {
   experiments: Array<{
@@ -26,7 +26,7 @@ export async function injectAmpExp(
   response: Response,
   rtv: string
 ): Promise<Response> {
-  const ampExpConfig = await read<AmpExp>(AMP_EXP, 'AMP_EXP', {type: 'json'});
+  const ampExpConfig = await read<AmpExp>(CONFIG, 'AMP_EXP', {type: 'json'});
   if (!ampExpConfig) {
     console.warn('AMP_EXP config is missing from KV store, skipping injection');
     return response;
