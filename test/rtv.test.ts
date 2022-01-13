@@ -13,12 +13,12 @@ jest.mock('worktop/kv');
 const readMock = mocked(read);
 
 // Object to match the last parameter passed to mock `read` function calls.
-const typeText = {
+const opts = {
   type: 'text',
 };
 
 /** Sets the RTVs to be returned by the mock */
-function setRtvs(rtvs: Record<string, string>): void {
+function setRtvs(rtvs: Record<string, string | null>): void {
   readMock.mockName('readMock');
   readMock.mockImplementation(async (_, key) => rtvs[key]);
 }
@@ -59,9 +59,14 @@ describe('rtv', () => {
 
     // Some individual tests call setRtvs on their own to override this.
     setRtvs({
-      'beta': '032105190310000',
+      'beta-opt-in': '032105190310001',
+      'beta-traffic': '032105190310000',
       'control': '022105150310000',
-      'experimental': '002105190310000',
+      'experimental-opt-in': '002105190310001',
+      'experimental-traffic': '002105190310000',
+      'experimentA': null,
+      'experimentB': '112105190310000',
+      'experimentC': null,
       'lts': '012104031425006',
       'nightly': '042105220310000',
       'nightly-control': '052105150310000',
@@ -74,7 +79,7 @@ describe('rtv', () => {
 
     expect(rtv).toEqual('012105150310000');
     expect(readMock).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(null, 'stable', typeText);
+    expect(readMock).toHaveBeenCalledWith(null, 'stable', opts);
   });
 
   it('chooses an RTV for unversioned LTS requests', async () => {
@@ -82,7 +87,7 @@ describe('rtv', () => {
 
     expect(rtv).toEqual('012104031425006');
     expect(readMock).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(null, 'lts', typeText);
+    expect(readMock).toHaveBeenCalledWith(null, 'lts', opts);
   });
 
   it('falls back to stable when LTS is missing, for unversioned LTS requests', async () => {
@@ -94,8 +99,8 @@ describe('rtv', () => {
 
     expect(rtv).toEqual('012105150310000');
     expect(readMock).toHaveBeenCalledTimes(2);
-    expect(readMock).toHaveBeenNthCalledWith(1, null, 'lts', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(2, null, 'stable', typeText);
+    expect(readMock).toHaveBeenNthCalledWith(1, null, 'lts', opts);
+    expect(readMock).toHaveBeenNthCalledWith(2, null, 'stable', opts);
   });
 
   it('opts in to channel via query param', async () => {
@@ -103,9 +108,10 @@ describe('rtv', () => {
       makeServerRequest('/v0.js', {queryParam: 'beta'})
     );
 
-    expect(rtv).toEqual('032105190310000');
-    expect(readMock).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(null, 'beta', typeText);
+    expect(rtv).toEqual('032105190310001');
+    expect(readMock).toHaveBeenCalledTimes(2);
+    expect(readMock).toHaveBeenCalledWith(null, 'beta', opts);
+    expect(readMock).toHaveBeenCalledWith(null, 'beta-opt-in', opts);
   });
 
   it('opts in to channel via cookie', async () => {
@@ -113,9 +119,10 @@ describe('rtv', () => {
       makeServerRequest('/v0.js', {cookie: 'experimental'})
     );
 
-    expect(rtv).toEqual('002105190310000');
-    expect(readMock).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(null, 'experimental', typeText);
+    expect(rtv).toEqual('002105190310001');
+    expect(readMock).toHaveBeenCalledTimes(2);
+    expect(readMock).toHaveBeenCalledWith(null, 'experimental', opts);
+    expect(readMock).toHaveBeenCalledWith(null, 'experimental-opt-in', opts);
   });
 
   it('prefers opting in via cookie over the query param', async () => {
@@ -123,9 +130,10 @@ describe('rtv', () => {
       makeServerRequest('/v0.js', {queryParam: 'beta', cookie: 'experimental'})
     );
 
-    expect(rtv).toEqual('002105190310000');
-    expect(readMock).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(null, 'experimental', typeText);
+    expect(rtv).toEqual('002105190310001');
+    expect(readMock).toHaveBeenCalledTimes(2);
+    expect(readMock).toHaveBeenCalledWith(null, 'experimental', opts);
+    expect(readMock).toHaveBeenCalledWith(null, 'experimental-opt-in', opts);
   });
 
   it('opts in to RTV number via query param', async () => {
@@ -143,10 +151,12 @@ describe('rtv', () => {
     );
 
     expect(rtv).toEqual('012105150310000');
-    expect(readMock).toHaveBeenCalledTimes(3);
-    expect(readMock).toHaveBeenNthCalledWith(1, null, 'doggies', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(2, null, 'kittens', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(3, null, 'stable', typeText);
+    expect(readMock).toHaveBeenCalledTimes(5);
+    expect(readMock).toHaveBeenNthCalledWith(1, null, 'doggies', opts);
+    expect(readMock).toHaveBeenNthCalledWith(2, null, 'doggies-opt-in', opts);
+    expect(readMock).toHaveBeenNthCalledWith(3, null, 'kittens', opts);
+    expect(readMock).toHaveBeenNthCalledWith(4, null, 'kittens-opt-in', opts);
+    expect(readMock).toHaveBeenNthCalledWith(5, null, 'stable', opts);
   });
 
   it('raises an error if no RTVs were undefined', async () => {
@@ -158,10 +168,12 @@ describe('rtv', () => {
       )
     ).rejects.toThrowError('No available RTV');
 
-    expect(readMock).toHaveBeenCalledTimes(4);
-    expect(readMock).toHaveBeenNthCalledWith(1, null, 'nightly', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(2, null, 'beta', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(3, null, 'lts', typeText);
-    expect(readMock).toHaveBeenNthCalledWith(4, null, 'stable', typeText);
+    expect(readMock).toHaveBeenCalledTimes(6);
+    expect(readMock).toHaveBeenNthCalledWith(1, null, 'nightly', opts);
+    expect(readMock).toHaveBeenNthCalledWith(2, null, 'nightly-opt-in', opts);
+    expect(readMock).toHaveBeenNthCalledWith(3, null, 'beta', opts);
+    expect(readMock).toHaveBeenNthCalledWith(4, null, 'beta-opt-in', opts);
+    expect(readMock).toHaveBeenNthCalledWith(5, null, 'lts', opts);
+    expect(readMock).toHaveBeenNthCalledWith(6, null, 'stable', opts);
   });
 });

@@ -27,12 +27,22 @@ export enum Channel {
  * @returns the chosen RTV.
  */
 export async function chooseRtv(request: ServerRequest): Promise<string> {
-  // Choose which channel to opt in to based on the following order:
+  const optInCookie = Cookie.parse(request.headers.get('cookie') ?? '')[
+    '__Host-AMP_OPT_IN'
+  ];
+  const optInQueryParam = request.query.get('optin');
+
+  // Choose which channel to opt in to based on the following order. Note that
+  // some channels have a separation between `-opt-in` and `-traffic`, so we
+  // also attempt to fetch `${channel}-opt-in` when `${channel}` is passed via
+  // cookie/query param.
   const channelChooser = [
     // Opt-in cookie value:
-    Cookie.parse(request.headers.get('cookie') ?? '')['__Host-AMP_OPT_IN'],
+    optInCookie,
+    optInCookie && `${optInCookie}-opt-in`,
     // Query param (?optin=channel-name):
-    request.query.get('optin'),
+    optInQueryParam,
+    optInQueryParam && `${optInQueryParam}-opt-in`,
     // LTS request:
     request.path.startsWith('/lts') && Channel.LTS,
     // Default to Stable:
