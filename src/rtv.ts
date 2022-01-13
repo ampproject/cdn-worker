@@ -30,7 +30,8 @@ const CHANNELS_WITH_OPT_IN_SUFFIX: ReadonlySet<string> = new Set([
 
 /**
  * Adds an `-opt-in` suffix to opt in channels that require it.
- * @param channel -
+ * @param channel - name of a channel that might require an `-opt-in` suffix.
+ * @returns the passed in `channel`, or or `channel` + '-opt-in'.
  */
 function maybeAddOptInSuffix(channel: string | null): string | null {
   return channel && CHANNELS_WITH_OPT_IN_SUFFIX.has(channel)
