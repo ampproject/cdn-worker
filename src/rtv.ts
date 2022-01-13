@@ -20,6 +20,24 @@ export enum Channel {
   NIGHTLY_CONTROL = 'nightly-control',
 }
 
+// Some channels have a separation between `-opt-in` and `-traffic`, while the
+// rest do not. This set contains all the channels that can only be opted in to
+// by adding the `-opt-in` suffix.
+const CHANNELS_WITH_OPT_IN_SUFFIX: ReadonlySet<string> = new Set([
+  Channel.BETA,
+  Channel.EXPERIMENTAL,
+]);
+
+/**
+ * Adds an `-opt-in` suffix to opt in channels that require it.
+ * @param channel -
+ */
+function maybeAddOptInSuffix(channel: string | null): string | null {
+  return channel && CHANNELS_WITH_OPT_IN_SUFFIX.has(channel)
+    ? `${channel}-opt-in`
+    : channel;
+}
+
 /**
  * Chooses which RTV to use for a requested unversioned file.
  *
@@ -27,22 +45,17 @@ export enum Channel {
  * @returns the chosen RTV.
  */
 export async function chooseRtv(request: ServerRequest): Promise<string> {
-  const optInCookie = Cookie.parse(request.headers.get('cookie') ?? '')[
-    '__Host-AMP_OPT_IN'
-  ];
-  const optInQueryParam = request.query.get('optin');
+  const optInCookie = maybeAddOptInSuffix(
+    Cookie.parse(request.headers.get('cookie') ?? '')['__Host-AMP_OPT_IN']
+  );
+  const optInQueryParam = maybeAddOptInSuffix(request.query.get('optin'));
 
-  // Choose which channel to opt in to based on the following order. Note that
-  // some channels have a separation between `-opt-in` and `-traffic`, so we
-  // also attempt to fetch `${channel}-opt-in` when `${channel}` is passed via
-  // cookie/query param.
+  // Choose which channel to opt in to based on the following order.
   const channelChooser = [
     // Opt-in cookie value:
     optInCookie,
-    optInCookie && `${optInCookie}-opt-in`,
     // Query param (?optin=channel-name):
     optInQueryParam,
-    optInQueryParam && `${optInQueryParam}-opt-in`,
     // LTS request:
     request.path.startsWith('/lts') && Channel.LTS,
     // Default to Stable:

@@ -109,8 +109,7 @@ describe('rtv', () => {
     );
 
     expect(rtv).toEqual('032105190310001');
-    expect(readMock).toHaveBeenCalledTimes(2);
-    expect(readMock).toHaveBeenCalledWith(null, 'beta', opts);
+    expect(readMock).toHaveBeenCalledTimes(1);
     expect(readMock).toHaveBeenCalledWith(null, 'beta-opt-in', opts);
   });
 
@@ -120,8 +119,7 @@ describe('rtv', () => {
     );
 
     expect(rtv).toEqual('002105190310001');
-    expect(readMock).toHaveBeenCalledTimes(2);
-    expect(readMock).toHaveBeenCalledWith(null, 'experimental', opts);
+    expect(readMock).toHaveBeenCalledTimes(1);
     expect(readMock).toHaveBeenCalledWith(null, 'experimental-opt-in', opts);
   });
 
@@ -131,8 +129,7 @@ describe('rtv', () => {
     );
 
     expect(rtv).toEqual('002105190310001');
-    expect(readMock).toHaveBeenCalledTimes(2);
-    expect(readMock).toHaveBeenCalledWith(null, 'experimental', opts);
+    expect(readMock).toHaveBeenCalledTimes(1);
     expect(readMock).toHaveBeenCalledWith(null, 'experimental-opt-in', opts);
   });
 
@@ -151,12 +148,10 @@ describe('rtv', () => {
     );
 
     expect(rtv).toEqual('012105150310000');
-    expect(readMock).toHaveBeenCalledTimes(5);
+    expect(readMock).toHaveBeenCalledTimes(3);
     expect(readMock).toHaveBeenNthCalledWith(1, null, 'doggies', opts);
-    expect(readMock).toHaveBeenNthCalledWith(2, null, 'doggies-opt-in', opts);
-    expect(readMock).toHaveBeenNthCalledWith(3, null, 'kittens', opts);
-    expect(readMock).toHaveBeenNthCalledWith(4, null, 'kittens-opt-in', opts);
-    expect(readMock).toHaveBeenNthCalledWith(5, null, 'stable', opts);
+    expect(readMock).toHaveBeenNthCalledWith(2, null, 'kittens', opts);
+    expect(readMock).toHaveBeenNthCalledWith(3, null, 'stable', opts);
   });
 
   it('raises an error if no RTVs were undefined', async () => {
@@ -168,12 +163,10 @@ describe('rtv', () => {
       )
     ).rejects.toThrowError('No available RTV');
 
-    expect(readMock).toHaveBeenCalledTimes(6);
+    expect(readMock).toHaveBeenCalledTimes(4);
     expect(readMock).toHaveBeenNthCalledWith(1, null, 'nightly', opts);
-    expect(readMock).toHaveBeenNthCalledWith(2, null, 'nightly-opt-in', opts);
-    expect(readMock).toHaveBeenNthCalledWith(3, null, 'beta', opts);
-    expect(readMock).toHaveBeenNthCalledWith(4, null, 'beta-opt-in', opts);
-    expect(readMock).toHaveBeenNthCalledWith(5, null, 'lts', opts);
-    expect(readMock).toHaveBeenNthCalledWith(6, null, 'stable', opts);
+    expect(readMock).toHaveBeenNthCalledWith(2, null, 'beta-opt-in', opts);
+    expect(readMock).toHaveBeenNthCalledWith(3, null, 'lts', opts);
+    expect(readMock).toHaveBeenNthCalledWith(4, null, 'stable', opts);
   });
 });
