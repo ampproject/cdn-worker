@@ -17,7 +17,10 @@ describe('headers', () => {
 
   it('responds with headers', async () => {
     const inputResponse = new Response('alert("!");', {
-      headers: {'Content-Type': 'text/javascript', 'X-Other-Header': 'kittens'},
+      headers: {
+        'Content-Type': 'application/javascript',
+        'X-Other-Header': 'kittens',
+      },
       status: 200,
     });
 
@@ -28,7 +31,7 @@ describe('headers', () => {
     expect(Object.fromEntries(outputResponse.headers)).toMatchObject({
       'access-control-allow-origin': '*',
       'cache-control': 'private, max-age=604800, stale-while-revalidate=604800',
-      'content-type': 'text/javascript',
+      'content-type': 'text/javascript; charset=UTF-8',
       'cross-origin-resource-policy': 'cross-origin',
       'strict-transport-security':
         'max-age=31536000; includeSubDomains; preload',
@@ -40,7 +43,7 @@ describe('headers', () => {
 
   it('adds extra headers', () => {
     const inputResponse = new Response('alert("!");', {
-      headers: {'Content-Type': 'text/javascript'},
+      headers: {'Content-Type': 'application/javascript'},
     });
 
     const outputResponse = withHeaders(
@@ -83,7 +86,7 @@ describe('headers', () => {
 
     expect(Object.fromEntries(outputResponse.headers)).toMatchObject(
       expect.objectContaining({
-        'content-type': 'text/plain',
+        'content-type': 'text/plain; charset=UTF-8',
       })
     );
   });

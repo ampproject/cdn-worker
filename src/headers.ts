@@ -34,7 +34,31 @@ export enum CacheControl {
 }
 
 export enum ContentType {
+  APPLICATION_JAVASCRIPT = 'application/javascript',
   APPLICATION_JSON = 'application/json; charset=UTF-8',
+  TEXT_JAVASCRIPT = 'text/javascript; charset=UTF-8',
+  TEXT_PLAIN = 'text/plain; charset=UTF-8',
+}
+
+/**
+ * Chooses the Content-Type of the output based on the input response's value.
+ *
+ * * Overrides `application/javascript` to `text/javascript; UTF-8`
+ * * If defined, uses the input response's Content-Type directly,
+ * * Otherwise fallbacks back to `text/plain; charset=UTF-8`
+ *
+ * @param inputContentType - value of the input response's Content-Type header.
+ */
+function chooseContentType(inputContentType: string | null): string {
+  if (inputContentType === ContentType.APPLICATION_JAVASCRIPT) {
+    return ContentType.TEXT_JAVASCRIPT;
+  }
+
+  if (inputContentType) {
+    return inputContentType;
+  }
+
+  return ContentType.TEXT_PLAIN;
 }
 
 /**
@@ -56,10 +80,10 @@ export function withHeaders(
 ): Response {
   const response = new Response(inputResponse.body);
 
-  // Set Content-Type to the the input response's original value, or fallback
-  // to 'text/plain'. Note that this could also get overridden via extraHeaders.
-  const contentType =
-    inputResponse.headers.get(HeaderKeys.CONTENT_TYPE) ?? 'text/plain';
+  // Note that this could also get overridden via extraHeaders.
+  const contentType = chooseContentType(
+    inputResponse.headers.get(HeaderKeys.CONTENT_TYPE)
+  );
 
   response.headers.set(HeaderKeys.CACHE_CONTROL, cacheControl);
   response.headers.set(HeaderKeys.CONTENT_TYPE, contentType);
