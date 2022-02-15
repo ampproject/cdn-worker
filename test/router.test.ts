@@ -52,7 +52,7 @@ function makeFetchEvent(path: string): FetchEvent {
       url: `https://example.com${path}`,
       // @ts-expect-error ignore missing fields, we only care about these ones.
       cf: {
-        country: 'br',
+        country: 'nl',
       },
 
       // We don't care about these fields, but they are used by the constructor
@@ -153,7 +153,8 @@ describe('router', () => {
 
       expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
         '012105150310000',
-        '/v0.js'
+        '/v0.js',
+        {country: 'nl'}
       );
     });
 
@@ -184,7 +185,7 @@ describe('router', () => {
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
-        'br',
+        'nl',
         undefined
       );
     });
@@ -252,7 +253,7 @@ describe('router', () => {
         );
         expect(injectAmpGeoMock).toHaveBeenCalledWith(
           expect.any(Response),
-          'br',
+          'nl',
           undefined
         );
       }
@@ -282,7 +283,8 @@ describe('router', () => {
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
-          path
+          path,
+          {'country': 'nl'}
         );
       }
     );
@@ -305,7 +307,8 @@ describe('router', () => {
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
-          path
+          path,
+          {'country': 'nl'}
         );
         expect(injectAmpExpMock).not.toHaveBeenCalled();
       }
@@ -331,7 +334,8 @@ describe('router', () => {
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
-          path
+          path,
+          {'country': 'nl'}
         );
       }
     );
@@ -358,7 +362,8 @@ describe('router', () => {
 
       expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
         '012105150310000',
-        path
+        path,
+        {'country': 'nl'}
       );
     });
   });

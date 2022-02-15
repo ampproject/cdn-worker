@@ -39,6 +39,34 @@ describe('headers', () => {
       'x-content-type-options': 'nosniff',
       'x-xss-protection': '0',
     });
+    expect(outputResponse.headers.has('x-other-header')).toBe(false);
+    expect(outputResponse.headers.has('X-Other-Header')).toBe(false);
+  });
+
+  it('does not add content-encoding if none was specified in input', async () => {
+    const inputResponse = new Response(Uint8Array.from([0x00, 0x01, 0x02]), {
+      headers: {},
+      status: 200,
+    });
+
+    const outputResponse = withHeaders(inputResponse, CacheControl.DEFAULT);
+
+    expect(outputResponse.headers.has('content-encoding')).toBe(false);
+  });
+
+  it('keeps content-encoding header', async () => {
+    const inputResponse = new Response(Uint8Array.from([0x00, 0x01, 0x02]), {
+      headers: {
+        'Content-Encoding': 'br',
+      },
+      status: 200,
+    });
+
+    const outputResponse = withHeaders(inputResponse, CacheControl.DEFAULT);
+
+    expect(Object.fromEntries(outputResponse.headers)).toMatchObject({
+      'content-encoding': 'br',
+    });
   });
 
   it('adds extra headers', () => {

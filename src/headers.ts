@@ -13,6 +13,7 @@ const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
 
 export enum HeaderKeys {
   CACHE_CONTROL = 'Cache-Control',
+  CONTENT_ENCODING = 'Content-Encoding',
   CONTENT_SECURITY_POLICY = 'Content-Security-Policy',
   CONTENT_TYPE = 'Content-Type',
   X_FRAME_OPTIONS = 'X-Frame-Options',
@@ -65,7 +66,7 @@ function chooseContentType(inputContentType: string | null): string {
  * Creates a new Response object with default HTTP headers.
  *
  * Drops all existing HTTP headers on the input response, except for the
- * Content-Type header which is kept. Note that Content-Type can be overridden
+ * Content-Encoding/Type headers which are kept. These headers can be overridden
  * using the `extraHeaders` parameter.
  *
  * @param inputResponse - object to add headers to.
@@ -80,12 +81,18 @@ export function withHeaders(
 ): Response {
   const response = new Response(inputResponse.body);
 
-  // Note that this could also get overridden via extraHeaders.
+  // Note that these could be overridden via extraHeaders.
+  const contentEncoding = inputResponse.headers.get(
+    HeaderKeys.CONTENT_ENCODING
+  );
   const contentType = chooseContentType(
     inputResponse.headers.get(HeaderKeys.CONTENT_TYPE)
   );
 
   response.headers.set(HeaderKeys.CACHE_CONTROL, cacheControl);
+  if (contentEncoding) {
+    response.headers.set(HeaderKeys.CONTENT_ENCODING, contentEncoding);
+  }
   response.headers.set(HeaderKeys.CONTENT_TYPE, contentType);
 
   [...SHARED_HEADERS, ...(extraHeaders ?? [])].forEach(([header, value]) => {
