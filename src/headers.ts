@@ -83,8 +83,6 @@ export function withHeaders(
   cacheControl: string,
   extraHeaders?: ReadonlyMap<HeaderKeys, string>
 ): Response {
-  const response = new Response(inputResponse.body);
-
   // Note that these could be overridden via extraHeaders.
   const contentEncoding = inputResponse.headers.get(
     HeaderKeys.CONTENT_ENCODING
@@ -93,15 +91,27 @@ export function withHeaders(
     inputResponse.headers.get(HeaderKeys.CONTENT_TYPE)
   );
 
-  response.headers.set(HeaderKeys.CACHE_CONTROL, cacheControl);
+  // Create a map for headers that get chosen directly in this function.
+  const initialHeaders = new Map<HeaderKeys, string>([
+    [HeaderKeys.CACHE_CONTROL, cacheControl],
+    [HeaderKeys.CONTENT_TYPE, contentType],
+  ]);
+
+  // Already-encoded content needs to have its Content-Encoding header set and
+  // the `encodeBody` field set to 'manual', to indicate to the Cloudflare
+  // Worker that it should not attempt to re-encode it.
+  const responseInit: ResponseInit = {};
   if (contentEncoding) {
-    response.headers.set(HeaderKeys.CONTENT_ENCODING, contentEncoding);
+    initialHeaders.set(HeaderKeys.CONTENT_ENCODING, contentEncoding);
+    responseInit.encodeBody = 'manual';
   }
-  response.headers.set(HeaderKeys.CONTENT_TYPE, contentType);
 
-  [...SHARED_HEADERS, ...(extraHeaders ?? [])].forEach(([header, value]) => {
-    response.headers.set(header, value);
-  });
+  // Merge the chosen, shared, and (possibly) extra headers together.
+  responseInit.headers = Object.fromEntries([
+    ...initialHeaders,
+    ...SHARED_HEADERS,
+    ...(extraHeaders || []),
+  ]);
 
-  return response;
+  return new Response(inputResponse.body, responseInit);
 }
