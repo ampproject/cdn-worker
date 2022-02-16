@@ -2,7 +2,7 @@
  * Contains functions that interact with the backing storage.
  */
 
-import {IncomingCloudflareProperties} from 'worktop/request';
+import type {IncomingCloudflareProperties} from 'worktop/request';
 
 import {FetchError} from './errors';
 import {HeaderKeys} from './headers';
