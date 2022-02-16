@@ -5,13 +5,16 @@
 import type {IncomingCloudflareProperties} from 'worktop/request';
 
 import {FetchError} from './errors';
-import {HeaderKeys} from './headers';
+import {ContentEncoding, ContentType, HeaderKeys} from './headers';
 
 // `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
 type IncomingCloudflarePropertiesExtended = IncomingCloudflareProperties & {
   clientAcceptEncoding?: string;
 };
 
+const FETCH_OPTIONS: RequestInit = {
+  cf: {cacheEverything: true, cacheTtl: 31536000},
+};
 const STORAGE_BASE_URL = 'https://storage.googleapis.com/org-cdn/org-cdn/rtv/';
 
 const V0_DEDUP_RTV_PREFIXES: ReadonlySet<string> = new Set([
@@ -47,29 +50,37 @@ export async function fetchImmutableUrlOrDie(
   url: string,
   cf?: IncomingCloudflarePropertiesExtended
 ): Promise<Response> {
-  const response = await fetch(url, {
-    cf: {cacheEverything: true, cacheTtl: 31536000},
-  });
+  const responsePromise = fetch(url, FETCH_OPTIONS);
+  const brotliResponsePromise = tryBrotli(cf)
+    ? fetch(`${url}.br`, FETCH_OPTIONS)
+    : null;
+
+  const [response, brotliResponse] = await Promise.all([
+    responsePromise,
+    brotliResponsePromise,
+  ]);
+
   if (!response.ok) {
     throw new FetchError(response.status, response.statusText);
   }
 
-  if (!tryBrotli(cf)) {
+  if (!brotliResponse?.ok) {
+    // Brotli pre-compressed file for `url` was either not tried, or the file
+    // was not found in storage.
+    console.warn('No Brotli pre-compressed response for', url);
     return response;
   }
 
-  const brotliResponse = await fetch(`${url}.br`, {
-    cf: {cacheEverything: true, cacheTtl: 31536000},
+  // Merge the content of the Brotli response with the Content-Type of the
+  // uncompressed response, and set other required headers.
+  return new Response(brotliResponse.body, {
+    headers: {
+      [HeaderKeys.CONTENT_TYPE]:
+        response.headers.get(HeaderKeys.CONTENT_TYPE) ?? ContentType.TEXT_PLAIN,
+      [HeaderKeys.CONTENT_ENCODING]: ContentEncoding.BROTLI,
+    },
+    encodeBody: 'manual',
   });
-  if (!brotliResponse.ok) {
-    console.warn('Brotli pre-compressed file for', url, 'not found in storage');
-    return response;
-  }
-
-  // Merge the contents of Brotli response with headers from raw response.
-  const mergedResponse = new Response(brotliResponse.body, response);
-  mergedResponse.headers.set(HeaderKeys.CONTENT_ENCODING, 'br');
-  return mergedResponse;
 }
 
 /**

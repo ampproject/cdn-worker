@@ -41,6 +41,10 @@ export enum ContentType {
   TEXT_PLAIN = 'text/plain; charset=UTF-8',
 }
 
+export enum ContentEncoding {
+  BROTLI = 'br',
+}
+
 /**
  * Chooses the Content-Type of the output based on the input response's value.
  *
