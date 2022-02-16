@@ -64,23 +64,24 @@ export async function fetchImmutableUrlOrDie(
     throw new FetchError(response.status, response.statusText);
   }
 
-  if (!brotliResponse?.ok) {
-    // Brotli pre-compressed file for `url` was either not tried, or the file
-    // was not found in storage.
-    console.warn('No Brotli pre-compressed response for', url);
-    return response;
+  if (brotliResponse?.ok) {
+    // Merge the content of the Brotli response with the Content-Type of the
+    // uncompressed response, and set other required headers.
+    return new Response(brotliResponse.body, {
+      headers: {
+        [HeaderKeys.CONTENT_TYPE]:
+          response.headers.get(HeaderKeys.CONTENT_TYPE) ??
+          ContentType.TEXT_PLAIN,
+        [HeaderKeys.CONTENT_ENCODING]: ContentEncoding.BROTLI,
+      },
+      encodeBody: 'manual',
+    });
   }
 
-  // Merge the content of the Brotli response with the Content-Type of the
-  // uncompressed response, and set other required headers.
-  return new Response(brotliResponse.body, {
-    headers: {
-      [HeaderKeys.CONTENT_TYPE]:
-        response.headers.get(HeaderKeys.CONTENT_TYPE) ?? ContentType.TEXT_PLAIN,
-      [HeaderKeys.CONTENT_ENCODING]: ContentEncoding.BROTLI,
-    },
-    encodeBody: 'manual',
-  });
+  // Brotli pre-compressed file for `url` was either not tried, or the file
+  // was not found in storage.
+  console.warn('No Brotli pre-compressed response for', url);
+  return response;
 }
 
 /**
