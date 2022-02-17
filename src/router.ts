@@ -47,19 +47,25 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
-router.add('GET', '/rtv/:rtv/*', async ({cf, params, path}) => {
-  console.log('Serving versioned request to', path);
+router.add(
+  'GET',
+  /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
+  async ({cf, params}) => {
+    const response = await fetchImmutableAmpFileOrDie(params.rtv, params.wild);
 
-  const response = await fetchImmutableAmpFileOrDie(
-    params.rtv,
-    `/${params.wild}`
-  );
-  if (path.includes('/v0/amp-geo-')) {
     return withHeaders(
       await injectAmpGeo(response, cf.country, cf.regionCode),
       CacheControl.AMP_GEO
     );
   }
+);
+
+router.add('GET', '/rtv/:rtv/*', async ({cf, params}) => {
+  const response = await fetchImmutableAmpFileOrDie(
+    params.rtv,
+    `/${params.wild}`,
+    cf
+  );
 
   return withHeaders(response, CacheControl.STATIC_RTV_FILE);
 });
@@ -100,7 +106,7 @@ async function unversionedExperimentsRequest(
   console.log('Serving unversioned experiments.html request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path, req.cf);
 
   return withHeaders(
     response,
@@ -124,7 +130,7 @@ async function unversionedServiceWorkerRequest(
   console.log('Serving unversioned service worker request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path, req.cf);
 
   return withHeaders(response, CacheControl.SERVICE_WORKER_FILE);
 }
@@ -135,7 +141,7 @@ router.add('GET', '/sw/*', unversionedServiceWorkerRequest);
 router.add('GET', '/lts/*', async (req) => {
   console.log('Serving unversioned LTS request to', req.path);
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path, req.cf);
 
   return withHeaders(response, CacheControl.LTS);
 });
@@ -144,7 +150,7 @@ router.add('GET', '/*', async (req) => {
   console.log('Serving unversioned request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const response = await fetchImmutableAmpFileOrDie(rtv, req.path, req.cf);
 
   return withHeaders(response, CacheControl.DEFAULT);
 });

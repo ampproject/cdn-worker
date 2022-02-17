@@ -13,6 +13,7 @@ const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
 
 export enum HeaderKeys {
   CACHE_CONTROL = 'Cache-Control',
+  CONTENT_ENCODING = 'Content-Encoding',
   CONTENT_SECURITY_POLICY = 'Content-Security-Policy',
   CONTENT_TYPE = 'Content-Type',
   X_FRAME_OPTIONS = 'X-Frame-Options',
@@ -40,6 +41,10 @@ export enum ContentType {
   TEXT_PLAIN = 'text/plain; charset=UTF-8',
 }
 
+export enum ContentEncoding {
+  BROTLI = 'br',
+}
+
 /**
  * Chooses the Content-Type of the output based on the input response's value.
  *
@@ -65,7 +70,7 @@ function chooseContentType(inputContentType: string | null): string {
  * Creates a new Response object with default HTTP headers.
  *
  * Drops all existing HTTP headers on the input response, except for the
- * Content-Type header which is kept. Note that Content-Type can be overridden
+ * Content-Encoding/Type headers which are kept. These headers can be overridden
  * using the `extraHeaders` parameter.
  *
  * @param inputResponse - object to add headers to.
@@ -78,19 +83,35 @@ export function withHeaders(
   cacheControl: string,
   extraHeaders?: ReadonlyMap<HeaderKeys, string>
 ): Response {
-  const response = new Response(inputResponse.body);
-
-  // Note that this could also get overridden via extraHeaders.
+  // Note that these could be overridden via extraHeaders.
+  const contentEncoding = inputResponse.headers.get(
+    HeaderKeys.CONTENT_ENCODING
+  );
   const contentType = chooseContentType(
     inputResponse.headers.get(HeaderKeys.CONTENT_TYPE)
   );
 
-  response.headers.set(HeaderKeys.CACHE_CONTROL, cacheControl);
-  response.headers.set(HeaderKeys.CONTENT_TYPE, contentType);
+  // Create a map for headers that get chosen directly in this function.
+  const initialHeaders = new Map<HeaderKeys, string>([
+    [HeaderKeys.CACHE_CONTROL, cacheControl],
+    [HeaderKeys.CONTENT_TYPE, contentType],
+  ]);
 
-  [...SHARED_HEADERS, ...(extraHeaders ?? [])].forEach(([header, value]) => {
-    response.headers.set(header, value);
-  });
+  // Already-encoded content needs to have its Content-Encoding header set and
+  // the `encodeBody` field set to 'manual', to indicate to the Cloudflare
+  // Worker that it should not attempt to re-encode it.
+  const responseInit: ResponseInit = {};
+  if (contentEncoding) {
+    initialHeaders.set(HeaderKeys.CONTENT_ENCODING, contentEncoding);
+    responseInit.encodeBody = 'manual';
+  }
 
-  return response;
+  // Merge the chosen, shared, and (possibly) extra headers together.
+  responseInit.headers = Object.fromEntries([
+    ...initialHeaders,
+    ...SHARED_HEADERS,
+    ...(extraHeaders || []),
+  ]);
+
+  return new Response(inputResponse.body, responseInit);
 }
