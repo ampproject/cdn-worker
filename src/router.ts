@@ -6,11 +6,22 @@ import {Router} from 'worktop';
 import {ServerRequest} from 'worktop/request';
 
 import {FetchError} from './errors';
-import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
+import {
+  CacheControl,
+  ContentType,
+  HeaderKeys,
+  IncomingCloudflarePropertiesExtended,
+  withHeaders,
+} from './headers';
 import {injectAmpExp, injectAmpGeo} from './injectors';
+import * as injectorsCache from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
-import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
+import {
+  fetchImmutableAmpFileOrDie,
+  fetchImmutableUrlOrDie,
+  getAmpFileUrl,
+} from './storage';
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
@@ -22,14 +33,16 @@ const EXPERIMENTS_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
     "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/lts/ https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/sw/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0.mjs https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp.withgoogle.com/csp/amp",
   ],
 ]);
+const CACHE_AFTER_SERVING_HEADERS = (url: string, cacheKey: string) =>
+  new Map([[HeaderKeys.X_CACHE_AFTER_SERVING, `${url};${cacheKey}`]]);
 
 const router = new Router();
 
 router.onerror = (req, res, status, error) => {
   if (!(error instanceof FetchError)) {
-    console.error(error);
     error = new FetchError(status ?? 500, 'Internal Server Error');
   }
+  console.error(error);
   return new Response(error.message, {status: (error as FetchError).status});
 };
 
@@ -47,16 +60,46 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
+/**
+ * Handles amp-geo requests.
+ * @param rtv - RTV number to use.
+ * @param path - path to the requested amp-geo file, must start with `/`.
+ * @param cf - incoming Cloudflare properties.
+ * @returns a dynamically injected amp-geo response, possibly from cache.
+ */
+async function ampGeoRequest(
+  rtv: string,
+  path: string,
+  cf: IncomingCloudflarePropertiesExtended
+): Promise<Response> {
+  const url = getAmpFileUrl(rtv, path);
+  const cacheKey = `${cf.country ?? ''};${cf.regionCode ?? ''}`;
+
+  const cachedResponse = await injectorsCache.getCacheFor(url, cacheKey, cf);
+  if (cachedResponse) {
+    console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
+    return cachedResponse;
+  }
+  console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+
+  const response = await injectAmpGeo(
+    await fetchImmutableUrlOrDie(url),
+    cf.country,
+    cf.regionCode
+  );
+
+  return withHeaders(
+    response,
+    CacheControl.AMP_GEO,
+    CACHE_AFTER_SERVING_HEADERS(url, cacheKey)
+  );
+}
+
 router.add(
   'GET',
   /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
   async ({cf, params}) => {
-    const response = await fetchImmutableAmpFileOrDie(params.rtv, params.wild);
-
-    return withHeaders(
-      await injectAmpGeo(response, cf.country, cf.regionCode),
-      CacheControl.AMP_GEO
-    );
+    return ampGeoRequest(params.rtv, params.wild, cf);
   }
 );
 
@@ -86,12 +129,7 @@ router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
   console.log('Serving unversioned amp-geo request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
-
-  return withHeaders(
-    await injectAmpGeo(response, req.cf.country, req.cf.regionCode),
-    CacheControl.AMP_GEO
-  );
+  return ampGeoRequest(rtv, req.path, req.cf);
 });
 
 /**
