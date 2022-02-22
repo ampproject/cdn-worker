@@ -78,6 +78,23 @@ export async function fetchImmutableUrlOrDie(
 }
 
 /**
+ * Generates a complete URL to an immutable AMP file in storage.
+ *
+ * @param rtv - RTV number to use.
+ * @param path - path to an unversioned AMP file, must start with `/`.
+ * @returns a complete URL to an immutable AMP file in storage.
+ */
+export function getAmpFileUrl(rtv: string, path: string): string {
+  if (path.startsWith('/lts/')) {
+    path = path.slice('/lts'.length);
+  }
+  if (path.startsWith('/v0/') && V0_DEDUP_RTV_PREFIXES.has(rtv.slice(0, 2))) {
+    rtv = `01${rtv.slice(2)}`;
+  }
+  return `${STORAGE_BASE_URL}${rtv}${path}`;
+}
+
+/**
  * Fetches a raw AMP file from storage or responds with a simple error message.
  *
  * Convenience wrapper for fetchImmutableUrlOrDie that:
@@ -96,12 +113,5 @@ export async function fetchImmutableAmpFileOrDie(
   path: string,
   cf?: IncomingCloudflarePropertiesExtended
 ): Promise<Response> {
-  if (path.startsWith('/lts/')) {
-    path = path.slice('/lts'.length);
-  }
-  if (path.startsWith('/v0/') && V0_DEDUP_RTV_PREFIXES.has(rtv.slice(0, 2))) {
-    rtv = `01${rtv.slice(2)}`;
-  }
-
-  return fetchImmutableUrlOrDie(`${STORAGE_BASE_URL}${rtv}${path}`, cf);
+  return fetchImmutableUrlOrDie(getAmpFileUrl(rtv, path), cf);
 }
