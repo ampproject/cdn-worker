@@ -2,6 +2,14 @@
  * HTTP headers related functions and consts.
  */
 
+import type {IncomingCloudflareProperties} from 'worktop/request';
+
+// `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
+export type IncomingCloudflarePropertiesExtended =
+  IncomingCloudflareProperties & {
+    clientAcceptEncoding?: string;
+  };
+
 const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['access-control-allow-origin', '*'],
   ['cross-origin-resource-policy', 'cross-origin'],
@@ -114,4 +122,13 @@ export function withHeaders(
   ]);
 
   return new Response(inputResponse.body, responseInit);
+}
+
+/**
+ * Whether the client supports Brotli compression.
+ */
+export function supportsBrotli(
+  cf?: IncomingCloudflarePropertiesExtended
+): boolean {
+  return /\bbr\b/.test(cf?.clientAcceptEncoding ?? '');
 }

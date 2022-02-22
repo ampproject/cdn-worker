@@ -2,15 +2,14 @@
  * Contains functions that interact with the backing storage.
  */
 
-import type {IncomingCloudflareProperties} from 'worktop/request';
-
 import {FetchError} from './errors';
-import {ContentEncoding, ContentType, HeaderKeys} from './headers';
-
-// `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
-type IncomingCloudflarePropertiesExtended = IncomingCloudflareProperties & {
-  clientAcceptEncoding?: string;
-};
+import {
+  ContentEncoding,
+  ContentType,
+  HeaderKeys,
+  IncomingCloudflarePropertiesExtended,
+  supportsBrotli,
+} from './headers';
 
 const FETCH_OPTIONS: RequestInit = {
   cf: {cacheEverything: true, cacheTtl: 31536000},
@@ -29,13 +28,6 @@ const V0_DEDUP_RTV_PREFIXES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Whether the client supports Brotli compression.
- */
-function tryBrotli(cf?: IncomingCloudflarePropertiesExtended): boolean {
-  return /\bbr\b/.test(cf?.clientAcceptEncoding ?? '');
-}
-
-/**
  * Fetches a URL from the network or responds with a simple error message.
  *
  * Cloudflare caches edge requests, so simply using `fetch` takes advantage of
@@ -43,7 +35,8 @@ function tryBrotli(cf?: IncomingCloudflarePropertiesExtended): boolean {
  * https://developers.cloudflare.com/workers/learning/how-the-cache-works#interacting-with-the-cloudflare-cache
  *
  * @param url - to fetch from cache or network.
- * @param cf - incoming Cloudflare properties.
+ * @param cf - incoming Cloudflare properties, used to determine whether to try
+ *     fetching the Brotli pre-compressed version of the URL.
  * @returns a Response object for the request URL.
  */
 export async function fetchImmutableUrlOrDie(
@@ -51,7 +44,7 @@ export async function fetchImmutableUrlOrDie(
   cf?: IncomingCloudflarePropertiesExtended
 ): Promise<Response> {
   const responsePromise = fetch(url, FETCH_OPTIONS);
-  const brotliResponsePromise = tryBrotli(cf)
+  const brotliResponsePromise = supportsBrotli(cf)
     ? fetch(`${url}.br`, FETCH_OPTIONS)
     : null;
 
