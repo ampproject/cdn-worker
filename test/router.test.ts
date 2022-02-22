@@ -58,7 +58,7 @@ function makeFetchEvent(path: string): FetchEvent {
       // We don't care about these fields, but they are used by the constructor
       // of FetchEvent.
       headers: new Headers({
-        'Content-Type': 'text/plain',
+        'content-type': 'text/plain',
       }),
       blob: async () => new Blob(),
       text: async () => '',
@@ -98,7 +98,7 @@ describe('router', () => {
     it('responds with the favicon from amp.dev', async () => {
       fetchImmutableUrlOrDieMock.mockResolvedValue(
         new Response('favicon-raw-bytes', {
-          headers: {'Content-Type': 'image/x-icon'},
+          headers: {'content-type': 'image/x-icon'},
         })
       );
 
@@ -136,7 +136,7 @@ describe('router', () => {
     it('responds with an immutable file', async () => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('…var global=self;…', {
-          headers: {'Content-Type': 'text/javascript'},
+          headers: {'content-type': 'text/javascript'},
         })
       );
 
@@ -161,7 +161,7 @@ describe('router', () => {
     it('injects requests to amp-geo with country code', async () => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
-          headers: {'Content-Type': 'text/javascript'},
+          headers: {'content-type': 'text/javascript'},
         })
       );
       injectAmpGeoMock.mockImplementation(async (response) => response);
@@ -201,7 +201,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
         injectAmpExpMock.mockImplementation(async (response) => response);
@@ -231,7 +231,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
         injectAmpGeoMock.mockImplementation(async (response) => response);
@@ -264,7 +264,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('<html>…</html>', {
-            headers: {'Content-Type': 'text/html'},
+            headers: {'content-type': 'text/html'},
           })
         );
 
@@ -294,7 +294,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
 
@@ -319,7 +319,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
 
@@ -347,7 +347,7 @@ describe('router', () => {
     ])('responds to requests to %s', async (path, contentType) => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('raw-file-bytes', {
-          headers: {'Content-Type': contentType},
+          headers: {'content-type': contentType},
         })
       );
 

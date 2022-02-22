@@ -18,8 +18,8 @@ describe('headers', () => {
   it('responds with headers', async () => {
     const inputResponse = new Response('alert("!");', {
       headers: {
-        'Content-Type': 'application/javascript',
-        'X-Other-Header': 'kittens',
+        'content-type': 'application/javascript',
+        'x-other-header': 'kittens',
       },
       status: 200,
     });
@@ -40,7 +40,6 @@ describe('headers', () => {
       'x-xss-protection': '0',
     });
     expect(outputResponse.headers.has('x-other-header')).toBe(false);
-    expect(outputResponse.headers.has('X-Other-Header')).toBe(false);
   });
 
   it('does not add content-encoding if none was specified in input', async () => {
@@ -57,7 +56,7 @@ describe('headers', () => {
   it('keeps content-encoding header', async () => {
     const inputResponse = new Response(Uint8Array.from([0x00, 0x01, 0x02]), {
       headers: {
-        'Content-Encoding': 'br',
+        'content-encoding': 'br',
       },
       status: 200,
     });
@@ -71,7 +70,7 @@ describe('headers', () => {
 
   it('adds extra headers', () => {
     const inputResponse = new Response('alert("!");', {
-      headers: {'Content-Type': 'application/javascript'},
+      headers: {'content-type': 'application/javascript'},
     });
 
     const outputResponse = withHeaders(
@@ -89,7 +88,7 @@ describe('headers', () => {
 
   it('overrides the content type', () => {
     const inputResponse = new Response('<html></html>', {
-      headers: {'Content-Type': 'text/plain'},
+      headers: {'content-type': 'text/plain'},
     });
 
     const outputResponse = withHeaders(
@@ -107,7 +106,7 @@ describe('headers', () => {
 
   it('falls back to text/plain when there is no input content type', () => {
     const inputResponse = new Response('1A2B3C');
-    // new Response() has a default Content-Type.
+    // new Response() has a default content-type.
     inputResponse.headers.delete('content-type');
 
     const outputResponse = withHeaders(inputResponse, CacheControl.DEFAULT);

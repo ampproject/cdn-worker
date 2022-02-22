@@ -33,7 +33,7 @@ describe('injectors', () => {
 
       const inputResponse = new Response(
         'self.AMP_CONFIG={"v":"002105150310000"};/*AMP_CONFIG*/var global=self;…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpExp(
@@ -51,7 +51,7 @@ describe('injectors', () => {
 
       const inputResponse = new Response(
         'self.AMP_CONFIG={"v":"002105150310000"};/*AMP_CONFIG*/var global=self;…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpExp(
@@ -69,7 +69,7 @@ describe('injectors', () => {
 
       const inputResponse = new Response(
         'self.AMP_CONFIG={"v":"002105150310000"};/*AMP_CONFIG*/var global=self;…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpExp(
@@ -85,7 +85,7 @@ describe('injectors', () => {
     it('injects country code', async () => {
       const inputResponse = new Response(
         '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpGeo(inputResponse, 'US');
@@ -98,7 +98,7 @@ describe('injectors', () => {
     it('injects country and region codes', async () => {
       const inputResponse = new Response(
         '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpGeo(inputResponse, 'US', 'CA');
@@ -111,7 +111,7 @@ describe('injectors', () => {
     it('ignores explicitly missing region code', async () => {
       const inputResponse = new Response(
         '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpGeo(inputResponse, 'BR', undefined);
@@ -124,7 +124,7 @@ describe('injectors', () => {
     it('ignores explicitly missing country code', async () => {
       const inputResponse = new Response(
         '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
-        {headers: {'Content-Type': 'text/javascript'}}
+        {headers: {'content-type': 'text/javascript'}}
       );
 
       const outputResponse = await injectAmpGeo(inputResponse, null);

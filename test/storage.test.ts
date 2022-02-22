@@ -34,7 +34,7 @@ describe('storage', () => {
 
       await expect(response.text()).resolves.toEqual('Kittens.');
       expect(response.status).toEqual(200);
-      expect(response.headers.get('Content-Encoding')).toBeNull();
+      expect(response.headers.get('content-encoding')).toBeNull();
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith('https://example.com/kittens.txt', {
@@ -55,7 +55,7 @@ describe('storage', () => {
 
       await expect(response.text()).resolves.toEqual('ktnṡ');
       expect(response.status).toEqual(200);
-      expect(response.headers.get('Content-Encoding')).toEqual('br');
+      expect(response.headers.get('content-encoding')).toEqual('br');
 
       expect(fetch).toHaveBeenCalledTimes(2);
       expect(fetch).toHaveBeenNthCalledWith(
@@ -87,7 +87,7 @@ describe('storage', () => {
 
       await expect(response.text()).resolves.toEqual('Kittens.');
       expect(response.status).toEqual(200);
-      expect(response.headers.get('Content-Encoding')).toBeNull();
+      expect(response.headers.get('content-encoding')).toBeNull();
 
       expect(fetch).toHaveBeenCalledTimes(2);
       expect(fetch).toHaveBeenNthCalledWith(
