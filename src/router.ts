@@ -6,15 +6,9 @@ import {Router} from 'worktop';
 import {ServerRequest} from 'worktop/request';
 
 import {FetchError} from './errors';
-import {
-  CacheControl,
-  ContentType,
-  HeaderKeys,
-  IncomingCloudflarePropertiesExtended,
-  withHeaders,
-} from './headers';
+import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
 import {injectAmpExp, injectAmpGeo} from './injectors';
-import * as injectorsCache from './injectors-cache';
+import {enqueueCacheAndClone, getCacheFor} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
 import {
@@ -33,8 +27,6 @@ const EXPERIMENTS_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
     "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/lts/ https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/sw/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0.mjs https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp.withgoogle.com/csp/amp",
   ],
 ]);
-const CACHE_AFTER_SERVING_HEADERS = (url: string, cacheKey: string) =>
-  new Map([[HeaderKeys.X_CACHE_AFTER_SERVING, `${url};${cacheKey}`]]);
 
 const router = new Router();
 
@@ -62,20 +54,20 @@ router.add('GET', '/rtv/metadata', async (request) => {
 
 /**
  * Handles amp-geo requests.
+ * @param req - the request object.
  * @param rtv - RTV number to use.
  * @param path - path to the requested amp-geo file, must start with `/`.
- * @param cf - incoming Cloudflare properties.
  * @returns a dynamically injected amp-geo response, possibly from cache.
  */
 async function ampGeoRequest(
+  {cf, extend}: ServerRequest,
   rtv: string,
-  path: string,
-  cf: IncomingCloudflarePropertiesExtended
+  path: string
 ): Promise<Response> {
   const url = getAmpFileUrl(rtv, path);
   const cacheKey = `${cf.country ?? ''};${cf.regionCode ?? ''}`;
 
-  const cachedResponse = await injectorsCache.getCacheFor(url, cacheKey, cf);
+  const cachedResponse = await getCacheFor(url, cacheKey, cf);
   if (cachedResponse) {
     console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
     return withHeaders(cachedResponse, CacheControl.AMP_GEO);
@@ -89,17 +81,16 @@ async function ampGeoRequest(
   );
 
   return withHeaders(
-    response,
-    CacheControl.AMP_GEO,
-    CACHE_AFTER_SERVING_HEADERS(url, cacheKey)
+    await enqueueCacheAndClone(extend, response, url, cacheKey),
+    CacheControl.AMP_GEO
   );
 }
 
 router.add(
   'GET',
   /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
-  async ({cf, params}) => {
-    return ampGeoRequest(params.rtv, params.wild, cf);
+  async (req) => {
+    return ampGeoRequest(req, req.params.rtv, req.params.wild);
   }
 );
 
@@ -129,13 +120,13 @@ router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
   console.log('Serving unversioned amp-geo request to', req.path);
 
   const rtv = await chooseRtv(req);
-  return ampGeoRequest(rtv, req.path, req.cf);
+  return ampGeoRequest(req, rtv, req.path);
 });
 
 /**
  * Handles unversioned requests to /experiments.html.
  *
- * @param request - the request object.
+ * @param req - the request object.
  * @returns Response object with experiments.html content.
  */
 async function unversionedExperimentsRequest(

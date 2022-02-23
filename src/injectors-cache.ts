@@ -69,7 +69,7 @@ export async function getCacheFor(
  * @param url - base file URL that has dynamic content injected into it.
  * @param key - unique identifiers for this specific injection.
  */
-export async function saveCache(
+async function saveCache(
   response: Response,
   url: string,
   key: string
@@ -114,4 +114,35 @@ export async function saveCache(
 
   // Cache both the plain and the Brotli-compressed responses.
   await Promise.all([plainResponsePromise, brotliResponsePromise]);
+}
+
+/**
+ * Enqueues a cache-save action for after the request, and respond with a clone
+ *
+ * @param extend - wrapper for the FetchEvent's waitUntil method.
+ * @param response - raw Response to save to cache.
+ * @param url - base file URL that has dynamic content injected into it.
+ * @param key - unique identifiers for this specific injection.
+ * @returns a clone of `response`.
+ */
+export async function enqueueCacheAndClone(
+  extend: FetchEvent['waitUntil'],
+  response: Response,
+  url: string,
+  key: string
+): Promise<Response> {
+  if (!response.body) {
+    // To pass type checking below...
+    throw new Error('Response has no body');
+  }
+
+  // If we need to cache this response, we must call .tee on the body as it is
+  // going to be read multiple times.
+  const [body1, body2] = response.body.tee();
+
+  // Do *not* await on this promise. The `waitUntil` call extends the
+  // execution of this call until this promise is resolved, but we want to
+  // respond before the caching is performed.
+  extend(saveCache(new Response(body2, response), url, key));
+  return new Response(body1, response);
 }

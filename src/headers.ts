@@ -25,11 +25,6 @@ export enum HeaderKeys {
   CONTENT_SECURITY_POLICY = 'content-security-policy',
   CONTENT_TYPE = 'content-type',
   X_FRAME_OPTIONS = 'x-frame-options',
-
-  // Internal header indicating that the response should be cached after being
-  // served to the client. Should be be stripped before serving. The value of
-  // this header should be set to `${url};${cacheKey}`.
-  X_CACHE_AFTER_SERVING = 'x-cache-after-serving',
 }
 
 export enum CacheControl {
