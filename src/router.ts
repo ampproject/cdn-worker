@@ -34,7 +34,7 @@ router.onerror = (req, res, status, error) => {
   if (!(error instanceof FetchError)) {
     error = new FetchError(status ?? 500, 'Internal Server Error');
   }
-  console.error(error);
+  console.error(error?.stack ?? error);
   return new Response(error.message, {status: (error as FetchError).status});
 };
 
