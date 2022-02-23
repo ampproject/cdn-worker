@@ -76,9 +76,16 @@ export async function saveCache(
   // response and once for performing Brotli compression.
   const [body1, body2] = response.body.tee();
   const plainResponse = new Response(body1, response);
-  const bodyAsText = await new Response(body2, response).text();
+
+  const cache = await openInjectorsCache();
+  const plainResponsePromise = cache
+    .put(cacheKey(url, key), plainResponse)
+    .then(() => {
+      console.log('> Plain response cached');
+    });
 
   // Create an equivalent Response object that is already Brotli-compressed.
+  const bodyAsText = await new Response(body2, response).text();
   const compressed = await brotli.compress(textEncoder.encode(bodyAsText), {
     quality: 11,
   });
@@ -89,11 +96,12 @@ export async function saveCache(
     ],
     encodeBody: 'manual',
   });
+  const brotliResponsePromise = cache
+    .put(cacheKey(url, key, ContentEncoding.BROTLI), brotliResponse)
+    .then(() => {
+      console.log('> Brotli response cached');
+    });
 
   // Cache both the plain and the Brotli-compressed responses.
-  const cache = await openInjectorsCache();
-  await Promise.all([
-    cache.put(cacheKey(url, key), plainResponse),
-    cache.put(cacheKey(url, key, ContentEncoding.BROTLI), brotliResponse),
-  ]);
+  await Promise.all([plainResponsePromise, brotliResponsePromise]);
 }
