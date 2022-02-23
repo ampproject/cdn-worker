@@ -78,7 +78,7 @@ async function ampGeoRequest(
   const cachedResponse = await injectorsCache.getCacheFor(url, cacheKey, cf);
   if (cachedResponse) {
     console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
-    return cachedResponse;
+    return withHeaders(cachedResponse, CacheControl.AMP_GEO);
   }
   console.log('Cache miss for', url, 'with dynamic key', cacheKey);
 

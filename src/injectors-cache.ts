@@ -67,10 +67,12 @@ export async function saveCache(
   key: string
 ): Promise<void> {
   console.log('Caching', url, 'with cache key', key);
-
   if (!response.body) {
     throw new Error('Response has no body');
   }
+
+  // Don't cache short-lived cache controls.
+  response.headers.delete(HeaderKeys.CACHE_CONTROL);
 
   // Tee the body as it is going to be read twice - once for saving the plain
   // response and once for performing Brotli compression.
@@ -91,7 +93,7 @@ export async function saveCache(
   });
   const brotliResponse = new Response(compressed, {
     headers: [
-      ...Object.entries(response.headers.entries()),
+      ...response.headers,
       [HeaderKeys.CONTENT_ENCODING, ContentEncoding.BROTLI],
     ],
     encodeBody: 'manual',
