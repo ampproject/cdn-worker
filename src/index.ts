@@ -6,45 +6,35 @@ import {HeaderKeys} from './headers';
 import * as injectorsCache from './injectors-cache';
 import router from './router';
 
-/** */
-async function cacheAfterServing(
-  event: FetchEvent,
-  response: Response
-): Promise<void> {
+/**
+ * Handles requests.
+ */
+async function handler(event: FetchEvent): Promise<Response> {
+  let response = await router.run(event);
+
   const xCacheAfterServing = response.headers.get(
     HeaderKeys.X_CACHE_AFTER_SERVING
   );
-  if (!xCacheAfterServing) {
-    return;
+
+  if (!xCacheAfterServing || !response.body) {
+    return response;
   }
+
+  // Responses might be immutable if they are returned from `fetch` without
+  // being passed through any `new Response` before being returned from the
+  // router. We clone the response to ensure it is mutable.
+  response = new Response(response.body, response);
+  if (!response.body) {
+    // To pass type checking below...
+    throw new Error('Cloned response has no body');
+  }
+
+  const [url, ...cacheKeyParts] = xCacheAfterServing.split(';');
+  const cacheKey = cacheKeyParts.join(';');
 
   // Strip this internal header from the response being cached, or risk an
   // infinite loop of saving to cache.
   response.headers.delete(HeaderKeys.X_CACHE_AFTER_SERVING);
-
-  const [url, ...cacheKeyParts] = xCacheAfterServing.split(';');
-  const cacheKey = cacheKeyParts.join(';');
-  console.log(
-    'Caching',
-    url,
-    'with cache key',
-    cacheKey,
-    '(deferred until after response is complete)'
-  );
-  const cachingPromise = injectorsCache.saveCache(response, url, cacheKey);
-  event.waitUntil(cachingPromise);
-}
-
-/** */
-async function handler(event: FetchEvent): Promise<Response> {
-  const response = await router.run(event);
-
-  if (
-    !response.headers.has(HeaderKeys.X_CACHE_AFTER_SERVING) ||
-    !response.body
-  ) {
-    return response;
-  }
 
   // If we need to cache this response, we must call .tee on the body as it is
   // going to be read multiple times.
@@ -53,7 +43,9 @@ async function handler(event: FetchEvent): Promise<Response> {
   // Do *not* await on this promise. The `waitUntil` call extends the
   // execution of this call until this promise is resolved, but we want to
   // respond before the caching is performed.
-  cacheAfterServing(event, new Response(body2, response));
+  event.waitUntil(
+    injectorsCache.saveCache(new Response(body2, response), url, cacheKey)
+  );
   return new Response(body1, response);
 }
 

@@ -66,6 +66,8 @@ export async function saveCache(
   url: string,
   key: string
 ): Promise<void> {
+  console.log('Caching', url, 'with cache key', key);
+
   if (!response.body) {
     throw new Error('Response has no body');
   }
