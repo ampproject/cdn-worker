@@ -33,6 +33,16 @@ function cacheKey(...parts: string[]): string {
 }
 
 /**
+ * Generates a complete cache key for a Brotli-compressed cache object.
+ *
+ * @param parts - unique list of identifiers for object in cache.
+ * @returns a unique cache key.
+ */
+function cacheKeyBrotli(...parts: string[]): string {
+  return cacheKey(...parts, ContentEncoding.BROTLI);
+}
+
+/**
  * Gets an already injected Response for the given URL.
  *
  * @param url - base file URL that has dynamic content injected into it.
@@ -47,11 +57,9 @@ export async function getCacheFor(
   cf: IncomingCloudflarePropertiesExtended
 ): Promise<Response | undefined> {
   const cache = await openInjectorsCache();
-  const keyParts = [key];
-  if (supportsBrotli(cf)) {
-    keyParts.push(ContentEncoding.BROTLI);
-  }
-  return cache.match(cacheKey(url, ...keyParts));
+  return supportsBrotli(cf)
+    ? cache.match(cacheKeyBrotli(url, key))
+    : cache.match(cacheKey(url, key));
 }
 
 /**
@@ -99,7 +107,7 @@ export async function saveCache(
     encodeBody: 'manual',
   });
   const brotliResponsePromise = cache
-    .put(cacheKey(url, key, ContentEncoding.BROTLI), brotliResponse)
+    .put(cacheKeyBrotli(url, key), brotliResponse)
     .then(() => {
       console.log('> Brotli response cached');
     });
