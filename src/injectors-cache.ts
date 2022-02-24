@@ -130,7 +130,7 @@ export function enqueueCacheAndClone(
   response: Response,
   url: string,
   key: string
-): Promise<Response> {
+): Response {
   if (!response.body) {
     // To pass type checking below...
     throw new Error('Response has no body');
