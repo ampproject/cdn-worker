@@ -81,7 +81,7 @@ async function ampGeoRequest(
   );
 
   return withHeaders(
-    await enqueueCacheAndClone(extend, response, url, cacheKey),
+    enqueueCacheAndClone(extend, response, url, cacheKey),
     CacheControl.AMP_GEO
   );
 }
