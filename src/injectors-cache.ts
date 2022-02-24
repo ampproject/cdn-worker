@@ -4,6 +4,7 @@
 
 import * as brotli from './brotli-wasm-wrapper';
 import {
+  CacheControl,
   ContentEncoding,
   HeaderKeys,
   IncomingCloudflarePropertiesExtended,
@@ -79,8 +80,10 @@ async function saveCache(
     throw new Error('Response has no body');
   }
 
-  // Don't cache short-lived cache controls.
-  response.headers.delete(HeaderKeys.CACHE_CONTROL);
+  // Replace whatever cache-control header that we respond with, with a 1 year
+  // cache-control. Responses to user requests should replace this header again
+  // with the relevant cache-control before serving.
+  response.headers.set(HeaderKeys.CACHE_CONTROL, CacheControl.STATIC_RTV_FILE);
 
   // Tee the body as it is going to be read twice - once for saving the plain
   // response and once for performing Brotli compression.
