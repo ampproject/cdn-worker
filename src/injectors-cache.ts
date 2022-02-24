@@ -85,8 +85,10 @@ async function saveCache(
   // with the relevant cache-control before serving.
   response.headers.set(HeaderKeys.CACHE_CONTROL, CacheControl.STATIC_RTV_FILE);
 
-  // Tee the body as it is going to be read twice - once for saving the plain
-  // response and once for performing Brotli compression.
+  // We need to read the body of the response twice: once for saving the plain
+  // response and once for performing Brotli compression. Since response.body is
+  // a ReadableStream and can only be read once under normal circumstances, we
+  // must call .tee on it so we can read it twice.
   const [body1, body2] = response.body.tee();
   const plainResponse = new Response(body1, response);
 
@@ -139,8 +141,12 @@ export function enqueueCacheAndClone(
     throw new Error('Response has no body');
   }
 
-  // If we need to cache this response, we must call .tee on the body as it is
-  // going to be read multiple times.
+  // We need to read the body of the response twice: once by the saveCache call,
+  // and once by the server responding to the client request. Since
+  // response.body is a ReadableStream and can only be read once under normal
+  // circumstances, we must call .tee on it so we can read it twice.
+  // The astute reader will notice that `saveCache` also calls .tee on its own,
+  // because it also needs to read the body twice (for a total of 3 body reads).
   const [body1, body2] = response.body.tee();
 
   // Do *not* await on this promise. The `waitUntil` call extends the
