@@ -1,12 +1,5 @@
-// This is a bit tricky. This import actually returns an import promise. Esbuild
-// bundles ./node_modules/brotli-wasm/index.browser.js for this module, which in
-// turn *dynamically* import of brotli-wasm/pkg.bundler/brotli-wasm.js, so we
-// must await on it to use it. Type checkers will say that awaiting on
-// BrotliModule has no effect, because the `brotli-wasm` package.json explicitly
-// declares the its ./pkg.node/brotli_wasm.d.ts file to be the module's type
-// definition, so the type checker is unaware of this difference.
-import BrotliModule from 'brotli-wasm';
-import type {Options} from 'brotli-wasm';
+import brotliImportPromise from 'brotli-wasm';
+import type {BrotliModule, Options} from 'brotli-wasm';
 
 // This Module object is injected as a global by the Cloudflare Worker runner.
 declare const BROTLI_WASM: WebAssembly.Module;
@@ -16,19 +9,20 @@ declare const BROTLI_WASM: WebAssembly.Module;
 // Note that at initially this field is undefined. The exported functions in
 // this wrapper first await on `init_()` to ensure this field is initialized.
 declare const globalThis: DedicatedWorkerGlobalScope & {
-  __BROTLI_WASM_INSTANCE: WebAssembly.Exports & typeof BrotliModule;
+  __BROTLI_WASM_INSTANCE: WebAssembly.Exports & BrotliModule;
 };
 
 /**
  * Initializes the globalThis.__BROTLI_WASM_INSTANCE variable exactly once.
  */
-async function init_(): Promise<typeof BrotliModule> {
-  const brotli = await BrotliModule; // See note above.
+async function init_(): Promise<BrotliModule> {
+  // See note in types/brotli-wasm.d.ts.
+  const brotli = await brotliImportPromise;
   if (!globalThis.__BROTLI_WASM_INSTANCE) {
     const instance = await WebAssembly.instantiate(BROTLI_WASM, {
       './brotli_wasm_bg.js': brotli,
     });
-    globalThis.__BROTLI_WASM_INSTANCE = instance.exports as typeof BrotliModule;
+    globalThis.__BROTLI_WASM_INSTANCE = instance.exports as BrotliModule;
   }
   return brotli;
 }
