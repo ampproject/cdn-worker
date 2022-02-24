@@ -12,7 +12,6 @@ import {
 } from './headers';
 
 const INJECTORS_CACHE_NAME = 'injectors';
-const textEncoder = new TextEncoder();
 
 let injectorsCache_: Cache;
 /** */
@@ -99,10 +98,12 @@ async function saveCache(
     });
 
   // Create an equivalent Response object that is already Brotli-compressed.
-  const bodyAsText = await responseClone.text();
-  const compressed = await brotli.compress(textEncoder.encode(bodyAsText), {
-    quality: 11,
-  });
+  const compressed = await brotli.compress(
+    new Uint8Array(await responseClone.arrayBuffer()),
+    {
+      quality: 11,
+    }
+  );
   const brotliResponse = new Response(compressed, {
     headers: [
       ...response.headers,
