@@ -11,7 +11,7 @@ import {
   supportsBrotli,
 } from './headers';
 
-const INJECTORS_CACHE_NAME = 'injectors';
+const INJECTORS_CACHE_NAME = 'injectors-cache-v1';
 
 let injectorsCache_: Cache;
 /** */
