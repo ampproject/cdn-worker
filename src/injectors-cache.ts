@@ -88,19 +88,18 @@ async function saveCache(
   // We need to read the body of the response twice: once for saving the plain
   // response and once for performing Brotli compression. Since response.body is
   // a ReadableStream and can only be read once under normal circumstances, we
-  // must call .tee on it so we can read it twice.
-  const [body1, body2] = response.body.tee();
-  const plainResponse = new Response(body1, response);
+  // must call .clone on it so we can read it twice.
+  const responseClone = response.clone();
 
   const cache = await openInjectorsCache();
   const plainResponsePromise = cache
-    .put(cacheKey(url, key), plainResponse)
+    .put(cacheKey(url, key), response)
     .then(() => {
       console.log('> Plain response cached');
     });
 
   // Create an equivalent Response object that is already Brotli-compressed.
-  const bodyAsText = await new Response(body2, response).text();
+  const bodyAsText = await responseClone.text();
   const compressed = await brotli.compress(textEncoder.encode(bodyAsText), {
     quality: 11,
   });
@@ -144,14 +143,14 @@ export function enqueueCacheAndClone(
   // We need to read the body of the response twice: once by the saveCache call,
   // and once by the server responding to the client request. Since
   // response.body is a ReadableStream and can only be read once under normal
-  // circumstances, we must call .tee on it so we can read it twice.
-  // The astute reader will notice that `saveCache` also calls .tee on its own,
+  // circumstances, we must call .clone on it so we can read it twice.
+  // The astute reader will notice that `saveCache` also calls .clone as well,
   // because it also needs to read the body twice (for a total of 3 body reads).
-  const [body1, body2] = response.body.tee();
+  const responseClone = response.clone();
 
   // Do *not* await on this promise. The `waitUntil` call extends the
   // execution of this call until this promise is resolved, but we want to
   // respond before the caching is performed.
-  extend(saveCache(new Response(body2, response), url, key));
-  return new Response(body1, response);
+  extend(saveCache(responseClone, url, key));
+  return response;
 }
