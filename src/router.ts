@@ -2,12 +2,14 @@
  * Contains request routing logic.
  */
 
+import sha1 from 'hash.js/lib/hash/sha/1';
 import {Router} from 'worktop';
+import {KV, read} from 'worktop/kv';
 import {ServerRequest} from 'worktop/request';
 
 import {FetchError} from './errors';
 import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
-import {injectAmpExp, injectAmpGeo} from './injectors';
+import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
 import {enqueueCacheAndClone, getCacheFor} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
@@ -16,6 +18,9 @@ import {
   fetchImmutableUrlOrDie,
   getAmpFileUrl,
 } from './storage';
+
+// KV Binding via `wrangler.toml` config.
+declare const CONFIG: KV.Namespace;
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
@@ -108,10 +113,28 @@ router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
   console.log('Serving unversioned entry-file request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const ampExpConfig = (await read<AmpExp>(CONFIG, 'AMP_EXP', {
+    type: 'json',
+  })) ?? {experiments: []};
+
+  const url = getAmpFileUrl(rtv, req.path);
+  const cacheKey = sha1().update(JSON.stringify(ampExpConfig)).digest('hex');
+
+  const cachedResponse = await getCacheFor(url, cacheKey, req.cf);
+  if (cachedResponse) {
+    console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
+    return withHeaders(cachedResponse, CacheControl.ENTRY_FILE);
+  }
+  console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+
+  const response = await injectAmpExp(
+    await fetchImmutableUrlOrDie(url),
+    rtv,
+    ampExpConfig
+  );
 
   return withHeaders(
-    await injectAmpExp(response, rtv),
+    enqueueCacheAndClone(req.extend, response, url, cacheKey),
     CacheControl.ENTRY_FILE
   );
 });
