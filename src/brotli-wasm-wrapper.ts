@@ -6,8 +6,8 @@ declare const BROTLI_WASM: WebAssembly.Module;
 
 // The build process replaces references to the `wasm` variable in the
 // dependency file brotli_wasm_bg.js with `globalThis.__BROTLI_WASM_INSTANCE`.
-// Note that at initially this field is undefined. The exported functions in
-// this wrapper first await on `init_()` to ensure this field is initialized.
+// Note that initially this field is undefined. The exported functions in this
+// wrapper first await on `init_()` to ensure this field is initialized.
 declare const globalThis: DedicatedWorkerGlobalScope & {
   __BROTLI_WASM_INSTANCE: WebAssembly.Exports & BrotliModule;
 };
