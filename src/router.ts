@@ -89,7 +89,7 @@ async function ampGeoRequest(
 router.add(
   'GET',
   /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
-  async (req) => {
+  (req) => {
     return ampGeoRequest(req, req.params.rtv, req.params.wild);
   }
 );

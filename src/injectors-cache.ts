@@ -125,7 +125,7 @@ async function saveCache(
  * @param key - unique identifiers for this specific injection.
  * @returns a clone of `response`.
  */
-export async function enqueueCacheAndClone(
+export function enqueueCacheAndClone(
   extend: FetchEvent['waitUntil'],
   response: Response,
   url: string,
