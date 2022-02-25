@@ -12,6 +12,7 @@ import {
 } from './headers';
 
 const INJECTORS_CACHE_NAME = 'injectors-cache-v1';
+const textEncoder = new TextEncoder();
 
 /**
  * Generates a complete cache key for a cache object.
@@ -31,6 +32,17 @@ function cacheKey(...parts: string[]): string {
  */
 function cacheKeyBrotli(...parts: string[]): string {
   return cacheKey(...parts, ContentEncoding.BROTLI);
+}
+
+/** */
+export async function hashObject(obj: unknown): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest(
+    'SHA-1',
+    textEncoder.encode(JSON.stringify(obj))
+  );
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**

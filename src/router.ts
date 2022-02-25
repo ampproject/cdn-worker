@@ -2,7 +2,6 @@
  * Contains request routing logic.
  */
 
-import sha1 from 'hash.js/lib/hash/sha/1';
 import {Router} from 'worktop';
 import {KV, read} from 'worktop/kv';
 import {ServerRequest} from 'worktop/request';
@@ -10,7 +9,7 @@ import {ServerRequest} from 'worktop/request';
 import {FetchError} from './errors';
 import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
 import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
-import {enqueueCacheAndClone, getCacheFor} from './injectors-cache';
+import {enqueueCacheAndClone, getCacheFor, hashObject} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
 import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
@@ -115,7 +114,7 @@ router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
   })) ?? {experiments: []};
 
   const url = getAmpFileUrl(rtv, req.path);
-  const cacheKey = sha1().update(JSON.stringify(ampExpConfig)).digest('hex');
+  const cacheKey = await hashObject(ampExpConfig);
 
   const cachedResponse = await getCacheFor(url, cacheKey, req.cf);
   if (cachedResponse) {

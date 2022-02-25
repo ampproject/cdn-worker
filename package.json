@@ -13,7 +13,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "brotli-wasm": "1.1.0",
-    "hash.js": "1.1.7",
     "worktop": "0.7.3"
   },
   "devDependencies": {
