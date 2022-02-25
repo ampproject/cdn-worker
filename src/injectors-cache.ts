@@ -13,15 +13,6 @@ import {
 
 const INJECTORS_CACHE_NAME = 'injectors-cache-v1';
 
-let injectorsCache_: Cache;
-/** */
-async function openInjectorsCache(): Promise<Cache> {
-  if (!injectorsCache_) {
-    injectorsCache_ = await caches.open(INJECTORS_CACHE_NAME);
-  }
-  return injectorsCache_;
-}
-
 /**
  * Generates a complete cache key for a cache object.
  *
@@ -56,7 +47,7 @@ export async function getCacheFor(
   key: string,
   cf: IncomingCloudflarePropertiesExtended
 ): Promise<Response | undefined> {
-  const cache = await openInjectorsCache();
+  const cache = await caches.open(INJECTORS_CACHE_NAME);
   return supportsBrotli(cf)
     ? cache.match(cacheKeyBrotli(url, key))
     : cache.match(cacheKey(url, key));
@@ -75,10 +66,6 @@ async function saveCache(
   key: string
 ): Promise<void> {
   console.log('Caching', url, 'with cache key', key);
-  if (!response.body) {
-    throw new Error('Response has no body');
-  }
-
   // Replace whatever cache-control header that we respond with, with a 1 year
   // cache-control. Responses to user requests should replace this header again
   // with the relevant cache-control before serving.
@@ -90,7 +77,7 @@ async function saveCache(
   // must call .clone on it so we can read it twice.
   const responseClone = response.clone();
 
-  const cache = await openInjectorsCache();
+  const cache = await caches.open(INJECTORS_CACHE_NAME);
   const plainResponsePromise = cache
     .put(cacheKey(url, key), response)
     .then(() => {

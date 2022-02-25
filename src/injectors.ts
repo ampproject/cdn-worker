@@ -20,13 +20,8 @@ export interface AmpExp {
 export async function injectAmpExp(
   response: Response,
   rtv: string,
-  ampExpConfig: AmpExp | null
+  ampExpConfig: AmpExp
 ): Promise<Response> {
-  if (!ampExpConfig) {
-    console.warn('AMP_EXP config is missing from KV store, skipping injection');
-    return response;
-  }
-
   const ampExpJson = Object.fromEntries(
     ampExpConfig.experiments
       .filter(

@@ -13,11 +13,8 @@ import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
 import {enqueueCacheAndClone, getCacheFor} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
-import {
-  fetchImmutableAmpFileOrDie,
-  fetchImmutableUrlOrDie,
-  getAmpFileUrl,
-} from './storage';
+import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
+import {getAmpFileUrl} from './storage-util';
 
 // KV Binding via `wrangler.toml` config.
 declare const CONFIG: KV.Namespace;
