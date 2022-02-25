@@ -15,6 +15,7 @@ const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['cross-origin-resource-policy', 'cross-origin'],
   ['strict-transport-security', 'max-age=31536000; includeSubDomains; preload'],
   ['timing-allow-origin', '*'],
+  ['vary', 'accept-encoding'],
   ['x-content-type-options', 'nosniff'],
   ['x-xss-protection', '0'],
 ]);

@@ -36,6 +36,7 @@ describe('headers', () => {
       'strict-transport-security':
         'max-age=31536000; includeSubDomains; preload',
       'timing-allow-origin': '*',
+      'vary': 'accept-encoding',
       'x-content-type-options': 'nosniff',
       'x-xss-protection': '0',
     });
