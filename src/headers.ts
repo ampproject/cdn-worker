@@ -20,6 +20,8 @@ const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['x-xss-protection', '0'],
 ]);
 
+export const CHARSET_UTF_8 = 'charset=UTF-8';
+
 export enum HeaderKeys {
   CACHE_CONTROL = 'cache-control',
   CONTENT_ENCODING = 'content-encoding',
@@ -45,9 +47,9 @@ export enum CacheControl {
 
 export enum ContentType {
   APPLICATION_JAVASCRIPT = 'application/javascript',
-  APPLICATION_JSON = 'application/json; charset=UTF-8',
-  TEXT_JAVASCRIPT = 'text/javascript; charset=UTF-8',
-  TEXT_PLAIN = 'text/plain; charset=UTF-8',
+  APPLICATION_JSON = 'application/json',
+  TEXT_JAVASCRIPT = 'text/javascript',
+  TEXT_PLAIN = 'text/plain',
 }
 
 export enum ContentEncoding {
@@ -55,24 +57,27 @@ export enum ContentEncoding {
 }
 
 /**
- * Chooses the Content-Type of the output based on the input response's value.
+ * Normalizes the Content-Type of the output based on the input response's value.
  *
- * * Overrides `application/javascript` to `text/javascript; UTF-8`
- * * If defined, uses the input response's Content-Type directly,
+ * * Overrides `application/javascript` to `text/javascript; charset=UTF-8`
+ * * If defined, uses the input response's Content-Type directly (adding
+ *   `; charset=UTF-8` to known types if it is missing),
  * * Otherwise fallbacks back to `text/plain; charset=UTF-8`
  *
  * @param inputContentType - value of the input response's Content-Type header.
  */
-function chooseContentType(inputContentType: string | null): string {
+function normalizeContentType(inputContentType: string | null): string {
   if (inputContentType === ContentType.APPLICATION_JAVASCRIPT) {
-    return ContentType.TEXT_JAVASCRIPT;
+    return `${ContentType.TEXT_JAVASCRIPT}; ${CHARSET_UTF_8}`;
   }
 
   if (inputContentType) {
-    return inputContentType;
+    return Object.values(ContentType).map(String).includes(inputContentType)
+      ? `${inputContentType}; ${CHARSET_UTF_8}`
+      : inputContentType;
   }
 
-  return ContentType.TEXT_PLAIN;
+  return `${ContentType.TEXT_PLAIN}; ${CHARSET_UTF_8}`;
 }
 
 /**
@@ -96,7 +101,7 @@ export function withHeaders(
   const contentEncoding = inputResponse.headers.get(
     HeaderKeys.CONTENT_ENCODING
   );
-  const contentType = chooseContentType(
+  const contentType = normalizeContentType(
     inputResponse.headers.get(HeaderKeys.CONTENT_TYPE)
   );
 

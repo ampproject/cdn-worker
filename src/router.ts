@@ -7,7 +7,13 @@ import {KV, read} from 'worktop/kv';
 import {ServerRequest} from 'worktop/request';
 
 import {FetchError} from './errors';
-import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
+import {
+  CHARSET_UTF_8,
+  CacheControl,
+  ContentType,
+  HeaderKeys,
+  withHeaders,
+} from './headers';
 import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
 import {enqueueCacheAndClone, getCacheFor, hashObject} from './injectors-cache';
 import {rtvMetadata} from './metadata';
@@ -19,7 +25,10 @@ import {getAmpFileUrl} from './storage-util';
 declare const CONFIG: KV.Namespace;
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
-  [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
+  [
+    HeaderKeys.CONTENT_TYPE,
+    `${ContentType.APPLICATION_JSON}; ${CHARSET_UTF_8}`,
+  ],
 ]);
 const EXPERIMENTS_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.X_FRAME_OPTIONS, 'deny'],

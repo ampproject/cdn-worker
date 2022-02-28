@@ -4,6 +4,7 @@
 
 import {FetchError} from './errors';
 import {
+  CHARSET_UTF_8,
   ContentEncoding,
   ContentType,
   HeaderKeys,
@@ -53,7 +54,7 @@ export async function fetchImmutableUrlOrDie(
       headers: {
         [HeaderKeys.CONTENT_TYPE]:
           response.headers.get(HeaderKeys.CONTENT_TYPE) ??
-          ContentType.TEXT_PLAIN,
+          `${ContentType.TEXT_PLAIN}; ${CHARSET_UTF_8}`,
         [HeaderKeys.CONTENT_ENCODING]: ContentEncoding.BROTLI,
       },
       encodeBody: 'manual',
