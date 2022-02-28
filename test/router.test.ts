@@ -159,7 +159,9 @@ describe('router', () => {
       );
 
       expect(response.status).toEqual(200);
-      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('content-type')).toEqual(
+        'text/javascript; charset=UTF-8'
+      );
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.STATIC_RTV_FILE
       );
@@ -191,7 +193,9 @@ describe('router', () => {
       );
 
       expect(response.status).toEqual(200);
-      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('content-type')).toEqual(
+        'text/javascript; charset=UTF-8'
+      );
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.AMP_GEO
       );
@@ -268,7 +272,9 @@ describe('router', () => {
         const response = await router.run(makeFetchEvent(path));
 
         expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('content-type')).toEqual(
+          'text/javascript; charset=UTF-8'
+        );
         expect(response.headers.get('cache-control')).toEqual(CacheControl.LTS);
         await expect(response.text()).resolves.toEqual('…var global=self;…');
 
@@ -293,7 +299,9 @@ describe('router', () => {
         const response = await router.run(makeFetchEvent(path));
 
         expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('content-type')).toEqual(
+          'text/javascript; charset=UTF-8'
+        );
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.SERVICE_WORKER_FILE
         );
@@ -321,7 +329,9 @@ describe('router', () => {
       const response = await router.run(makeFetchEvent(path));
 
       expect(response.status).toEqual(200);
-      expect(response.headers.get('content-type')).toEqual(contentType);
+      expect(response.headers.get('content-type')).toEqual(
+        `${contentType}; charset=UTF-8`
+      );
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.DEFAULT
       );
@@ -358,7 +368,9 @@ describe('router', () => {
         const response = await router.run(makeFetchEvent(path));
 
         expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('content-type')).toEqual(
+          'text/javascript; charset=UTF-8'
+        );
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.ENTRY_FILE
         );
@@ -405,7 +417,9 @@ describe('router', () => {
       const response = await router.run(makeFetchEvent(path));
 
       expect(response.status).toEqual(200);
-      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('content-type')).toEqual(
+        'text/javascript; charset=UTF-8'
+      );
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.AMP_GEO
       );
@@ -454,7 +468,9 @@ describe('router', () => {
         const response = await router.run(makeFetchEvent(path));
 
         expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('content-type')).toEqual(
+          'text/javascript; charset=UTF-8'
+        );
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.AMP_GEO
         );
@@ -489,7 +505,9 @@ describe('router', () => {
       const response = await router.run(makeFetchEvent('/v0.js'));
 
       expect(response.status).toEqual(200);
-      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('content-type')).toEqual(
+        'text/javascript; charset=UTF-8'
+      );
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.ENTRY_FILE
       );
