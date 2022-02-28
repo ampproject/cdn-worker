@@ -2,21 +2,30 @@
  * HTTP headers related functions and consts.
  */
 
+import type {IncomingCloudflareProperties} from 'worktop/request';
+
+// `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
+export type IncomingCloudflarePropertiesExtended =
+  IncomingCloudflareProperties & {
+    clientAcceptEncoding?: string;
+  };
+
 const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
-  ['Access-Control-Allow-Origin', '*'],
-  ['Cross-Origin-Resource-Policy', 'cross-origin'],
-  ['Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'],
-  ['Timing-Allow-Origin', '*'],
-  ['X-Content-Type-Options', 'nosniff'],
-  ['X-Xss-Protection', '0'],
+  ['access-control-allow-origin', '*'],
+  ['cross-origin-resource-policy', 'cross-origin'],
+  ['strict-transport-security', 'max-age=31536000; includeSubDomains; preload'],
+  ['timing-allow-origin', '*'],
+  ['vary', 'accept-encoding'],
+  ['x-content-type-options', 'nosniff'],
+  ['x-xss-protection', '0'],
 ]);
 
 export enum HeaderKeys {
-  CACHE_CONTROL = 'Cache-Control',
-  CONTENT_ENCODING = 'Content-Encoding',
-  CONTENT_SECURITY_POLICY = 'Content-Security-Policy',
-  CONTENT_TYPE = 'Content-Type',
-  X_FRAME_OPTIONS = 'X-Frame-Options',
+  CACHE_CONTROL = 'cache-control',
+  CONTENT_ENCODING = 'content-encoding',
+  CONTENT_SECURITY_POLICY = 'content-security-policy',
+  CONTENT_TYPE = 'content-type',
+  X_FRAME_OPTIONS = 'x-frame-options',
 }
 
 export enum CacheControl {
@@ -114,4 +123,13 @@ export function withHeaders(
   ]);
 
   return new Response(inputResponse.body, responseInit);
+}
+
+/**
+ * Whether the client supports Brotli compression.
+ */
+export function supportsBrotli(
+  cf?: IncomingCloudflarePropertiesExtended
+): boolean {
+  return /\bbr\b/.test(cf?.clientAcceptEncoding ?? '');
 }

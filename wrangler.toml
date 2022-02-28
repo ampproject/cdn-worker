@@ -9,6 +9,9 @@ kv_namespaces = [
   { binding = "CONFIG", id = "b03e5db05f3e4d068508da267e248949", preview_id = "69318ded67c0477b85d73ec801b47543" }
 ]
 
+[wasm_modules]
+BROTLI_WASM = 'node_modules/brotli-wasm/pkg.bundler/brotli_wasm_bg.wasm'
+
 [build]
 command = "npm ci && npm run build"
 [build.upload]

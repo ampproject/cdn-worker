@@ -6,11 +6,17 @@ import {beforeEach} from '@jest/globals';
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import makeServiceWorkerEnv from 'service-worker-mock';
 import {mocked} from 'ts-jest/utils';
+import {read} from 'worktop/kv';
 import {Router} from 'worktop/router';
 
 import {FetchError} from '../src/errors';
 import {CacheControl} from '../src/headers';
 import {injectAmpExp, injectAmpGeo} from '../src/injectors';
+import {
+  enqueueCacheAndClone,
+  getCacheFor,
+  hashObject,
+} from '../src/injectors-cache';
 import {rtvMetadata} from '../src/metadata';
 import router from '../src/router';
 import {chooseRtv} from '../src/rtv';
@@ -29,6 +35,9 @@ jest.mock('worktop', () => ({
   Router,
 }));
 
+jest.mock('worktop/kv');
+const readMock = mocked(read);
+
 jest.mock('../src/metadata');
 const rtvMetadataMock = mocked(rtvMetadata);
 
@@ -38,6 +47,11 @@ const chooseRtvMock = mocked(chooseRtv);
 jest.mock('../src/injectors');
 const injectAmpExpMock = mocked(injectAmpExp);
 const injectAmpGeoMock = mocked(injectAmpGeo);
+
+jest.mock('../src/injectors-cache');
+const hashObjectMock = mocked(hashObject);
+const enqueueCacheAndCloneMock = mocked(enqueueCacheAndClone);
+const getCacheForMock = mocked(getCacheFor);
 
 jest.mock('../src/storage');
 const fetchImmutableUrlOrDieMock = mocked(fetchImmutableUrlOrDie);
@@ -58,7 +72,7 @@ function makeFetchEvent(path: string): FetchEvent {
       // We don't care about these fields, but they are used by the constructor
       // of FetchEvent.
       headers: new Headers({
-        'Content-Type': 'text/plain',
+        'content-type': 'text/plain',
       }),
       blob: async () => new Blob(),
       text: async () => '',
@@ -98,7 +112,7 @@ describe('router', () => {
     it('responds with the favicon from amp.dev', async () => {
       fetchImmutableUrlOrDieMock.mockResolvedValue(
         new Response('favicon-raw-bytes', {
-          headers: {'Content-Type': 'image/x-icon'},
+          headers: {'content-type': 'image/x-icon'},
         })
       );
 
@@ -106,7 +120,7 @@ describe('router', () => {
 
       expect(response.status).toEqual(200);
       expect(response.headers.get('content-type')).toEqual('image/x-icon');
-      expect(await response.text()).toEqual('favicon-raw-bytes');
+      await expect(response.text()).resolves.toEqual('favicon-raw-bytes');
 
       expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
         'https://amp.dev/static/img/favicon.png'
@@ -126,17 +140,17 @@ describe('router', () => {
       expect(response.headers.get('content-type')).toEqual(
         'application/json; charset=UTF-8'
       );
-      expect(await response.json()).toEqual({
+      await expect(response.json()).resolves.toEqual({
         ampRuntimeVersion: '012105150310000',
       });
     });
   });
 
-  describe('requests to versioned files', () => {
+  describe('requests to immutable versioned files', () => {
     it('responds with an immutable file', async () => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('…var global=self;…', {
-          headers: {'Content-Type': 'text/javascript'},
+          headers: {'content-type': 'text/javascript'},
         })
       );
 
@@ -149,7 +163,7 @@ describe('router', () => {
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.STATIC_RTV_FILE
       );
-      expect(await response.text()).toEqual('…var global=self;…');
+      await expect(response.text()).resolves.toEqual('…var global=self;…');
 
       expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
         '012105150310000',
@@ -157,14 +171,20 @@ describe('router', () => {
         {country: 'nl'}
       );
     });
+  });
 
+  describe('requests to dynamic versioned files', () => {
     it('injects requests to amp-geo with country code', async () => {
-      fetchImmutableAmpFileOrDieMock.mockResolvedValue(
-        new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
-          headers: {'Content-Type': 'text/javascript'},
-        })
+      const expectedResponse = new Response(
+        '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
+        {
+          headers: {'content-type': 'text/javascript'},
+        }
       );
+      getCacheForMock.mockResolvedValue(undefined);
+      fetchImmutableUrlOrDieMock.mockResolvedValue(expectedResponse);
       injectAmpGeoMock.mockImplementation(async (response) => response);
+      enqueueCacheAndCloneMock.mockReturnValue(expectedResponse);
 
       const response = await router.run(
         makeFetchEvent('/rtv/012105150310000/v0/amp-geo-0.1.js')
@@ -175,96 +195,43 @@ describe('router', () => {
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.AMP_GEO
       );
-      expect(await response.text()).toEqual(
+      await expect(response.text()).resolves.toEqual(
         '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
       );
 
-      expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
-        '012105150310000',
-        '/v0/amp-geo-0.1.js'
+      expect(getCacheForMock).toHaveBeenCalledWith(
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'nl;',
+        {'country': 'nl'}
+      );
+      expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js'
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
         'nl',
         undefined
       );
+      expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.any(Response),
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'nl;'
+      );
     });
   });
 
-  describe('requests to unversioned files', () => {
+  describe('requests to immutable unversioned files', () => {
     beforeEach(() => {
       chooseRtvMock.mockResolvedValue('012105150310000');
     });
-
-    it.each(['/v0.js', '/v0.mjs', '/shadow-v0.mjs', '/amp4ads-v0.js'])(
-      'responds with entry file %s',
-      async (path) => {
-        fetchImmutableAmpFileOrDieMock.mockResolvedValue(
-          new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
-          })
-        );
-        injectAmpExpMock.mockImplementation(async (response) => response);
-
-        const response = await router.run(makeFetchEvent(path));
-
-        expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
-        expect(response.headers.get('cache-control')).toEqual(
-          CacheControl.ENTRY_FILE
-        );
-        expect(await response.text()).toEqual('…var global=self;…');
-
-        expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
-          '012105150310000',
-          path
-        );
-        expect(injectAmpExpMock).toHaveBeenCalledWith(
-          expect.any(Response),
-          '012105150310000'
-        );
-      }
-    );
-
-    it.each(['/v0/amp-geo-0.1.js', '/lts/v0/amp-geo-latest.mjs'])(
-      'injects requests to %s with country code',
-      async (path) => {
-        fetchImmutableAmpFileOrDieMock.mockResolvedValue(
-          new Response('…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…', {
-            headers: {'Content-Type': 'text/javascript'},
-          })
-        );
-        injectAmpGeoMock.mockImplementation(async (response) => response);
-
-        const response = await router.run(makeFetchEvent(path));
-
-        expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/javascript');
-        expect(response.headers.get('cache-control')).toEqual(
-          CacheControl.AMP_GEO
-        );
-        expect(await response.text()).toEqual(
-          '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
-        );
-
-        expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
-          '012105150310000',
-          path
-        );
-        expect(injectAmpGeoMock).toHaveBeenCalledWith(
-          expect.any(Response),
-          'nl',
-          undefined
-        );
-      }
-    );
 
     it.each(['/experiments.html', '/lts/experiments.html'])(
       'responds to requests to %s',
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('<html>…</html>', {
-            headers: {'Content-Type': 'text/html'},
+            headers: {'content-type': 'text/html'},
           })
         );
 
@@ -279,7 +246,7 @@ describe('router', () => {
         expect(response.headers.get('content-security-policy')).toContain(
           'default-src * blob: data:;'
         );
-        expect(await response.text()).toEqual('<html>…</html>');
+        await expect(response.text()).resolves.toEqual('<html>…</html>');
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
@@ -294,7 +261,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
 
@@ -303,7 +270,7 @@ describe('router', () => {
         expect(response.status).toEqual(200);
         expect(response.headers.get('content-type')).toEqual('text/javascript');
         expect(response.headers.get('cache-control')).toEqual(CacheControl.LTS);
-        expect(await response.text()).toEqual('…var global=self;…');
+        await expect(response.text()).resolves.toEqual('…var global=self;…');
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
@@ -319,7 +286,7 @@ describe('router', () => {
       async (path) => {
         fetchImmutableAmpFileOrDieMock.mockResolvedValue(
           new Response('…var global=self;…', {
-            headers: {'Content-Type': 'text/javascript'},
+            headers: {'content-type': 'text/javascript'},
           })
         );
 
@@ -330,7 +297,7 @@ describe('router', () => {
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.SERVICE_WORKER_FILE
         );
-        expect(await response.text()).toEqual('…var global=self;…');
+        await expect(response.text()).resolves.toEqual('…var global=self;…');
 
         expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
           '012105150310000',
@@ -347,7 +314,7 @@ describe('router', () => {
     ])('responds to requests to %s', async (path, contentType) => {
       fetchImmutableAmpFileOrDieMock.mockResolvedValue(
         new Response('raw-file-bytes', {
-          headers: {'Content-Type': contentType},
+          headers: {'content-type': contentType},
         })
       );
 
@@ -358,13 +325,185 @@ describe('router', () => {
       expect(response.headers.get('cache-control')).toEqual(
         CacheControl.DEFAULT
       );
-      expect(await response.text()).toEqual('raw-file-bytes');
+      await expect(response.text()).resolves.toEqual('raw-file-bytes');
 
       expect(fetchImmutableAmpFileOrDieMock).toHaveBeenCalledWith(
         '012105150310000',
         path,
         {'country': 'nl'}
       );
+    });
+  });
+
+  describe('requests to dynamic unversioned files', () => {
+    beforeEach(() => {
+      chooseRtvMock.mockResolvedValue('012105150310000');
+    });
+
+    it.each(['/v0.js', '/v0.mjs', '/shadow-v0.mjs', '/amp4ads-v0.js'])(
+      'responds with entry file %s',
+      async (path) => {
+        const expectedResponse = new Response('…var global=self;…', {
+          headers: {'content-type': 'text/javascript'},
+        });
+        readMock.mockResolvedValue(undefined);
+        hashObjectMock.mockResolvedValue(
+          '33f8b592a7722000aa8a50cce7e61ad4aaa019fe'
+        );
+        getCacheForMock.mockResolvedValue(undefined);
+        fetchImmutableUrlOrDieMock.mockResolvedValue(expectedResponse);
+        injectAmpExpMock.mockImplementation(async (response) => response);
+        enqueueCacheAndCloneMock.mockReturnValue(expectedResponse);
+
+        const response = await router.run(makeFetchEvent(path));
+
+        expect(response.status).toEqual(200);
+        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('cache-control')).toEqual(
+          CacheControl.ENTRY_FILE
+        );
+        await expect(response.text()).resolves.toEqual('…var global=self;…');
+
+        expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
+        expect(getCacheForMock).toHaveBeenCalledWith(
+          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`,
+          '33f8b592a7722000aa8a50cce7e61ad4aaa019fe',
+          {'country': 'nl'}
+        );
+        expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
+          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`
+        );
+        expect(injectAmpExpMock).toHaveBeenCalledWith(
+          expect.any(Response),
+          '012105150310000',
+          {experiments: []}
+        );
+        expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
+          expect.any(Function),
+          expect.any(Response),
+          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`,
+          '33f8b592a7722000aa8a50cce7e61ad4aaa019fe'
+        );
+      }
+    );
+
+    it.each([
+      ['/v0/amp-geo-0.1.js', 'amp-geo-0.1.js'],
+      ['/lts/v0/amp-geo-latest.mjs', 'amp-geo-latest.mjs'],
+    ])('injects requests to %s with country code', async (path, file) => {
+      const expectedResponse = new Response(
+        '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
+        {
+          headers: {'content-type': 'text/javascript'},
+        }
+      );
+      getCacheForMock.mockResolvedValue(undefined);
+      fetchImmutableUrlOrDieMock.mockResolvedValue(expectedResponse);
+      injectAmpGeoMock.mockImplementation(async (response) => response);
+      enqueueCacheAndCloneMock.mockReturnValue(expectedResponse);
+
+      const response = await router.run(makeFetchEvent(path));
+
+      expect(response.status).toEqual(200);
+      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('cache-control')).toEqual(
+        CacheControl.AMP_GEO
+      );
+      await expect(response.text()).resolves.toEqual(
+        '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
+      );
+
+      expect(getCacheForMock).toHaveBeenCalledWith(
+        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`,
+        'nl;',
+        {'country': 'nl'}
+      );
+      expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
+        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`
+      );
+      expect(injectAmpGeoMock).toHaveBeenCalledWith(
+        expect.any(Response),
+        'nl',
+        undefined
+      );
+      expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.any(Response),
+        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`,
+        'nl;'
+      );
+    });
+  });
+
+  describe('requests to pre-cached dynamic files', () => {
+    beforeEach(() => {
+      chooseRtvMock.mockResolvedValue('012105150310000');
+    });
+
+    it.each(['/rtv/012105150310000/v0/amp-geo-0.1.js', '/v0/amp-geo-0.1.js'])(
+      'serves requests to %s from cache',
+      async (path) => {
+        const expectedResponse = new Response(
+          '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…',
+          {
+            headers: {'content-type': 'text/javascript'},
+          }
+        );
+        getCacheForMock.mockResolvedValue(expectedResponse);
+
+        const response = await router.run(makeFetchEvent(path));
+
+        expect(response.status).toEqual(200);
+        expect(response.headers.get('content-type')).toEqual('text/javascript');
+        expect(response.headers.get('cache-control')).toEqual(
+          CacheControl.AMP_GEO
+        );
+        await expect(response.text()).resolves.toEqual(
+          '…d=T.exec("{{AMP_ISO_COUNTRY_HOTPATCH}}")…'
+        );
+
+        expect(getCacheForMock).toHaveBeenCalledWith(
+          'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+          'nl;',
+          {'country': 'nl'}
+        );
+        expect(fetchImmutableUrlOrDieMock).not.toHaveBeenCalled();
+        expect(injectAmpGeoMock).not.toHaveBeenCalled();
+        expect(enqueueCacheAndCloneMock).not.toHaveBeenCalled();
+      }
+    );
+
+    it('serves requests for /v0.js from cache', async () => {
+      readMock.mockResolvedValue({
+        experiments: [{name: 'foo', percentage: 0.1}],
+      });
+      hashObjectMock.mockResolvedValue(
+        '075dd3a9f4007daabf4629bffeb89644f1c55ec0'
+      );
+      getCacheForMock.mockResolvedValue(
+        new Response('…var global=self;…', {
+          headers: {'content-type': 'text/javascript'},
+        })
+      );
+
+      const response = await router.run(makeFetchEvent('/v0.js'));
+
+      expect(response.status).toEqual(200);
+      expect(response.headers.get('content-type')).toEqual('text/javascript');
+      expect(response.headers.get('cache-control')).toEqual(
+        CacheControl.ENTRY_FILE
+      );
+      await expect(response.text()).resolves.toEqual('…var global=self;…');
+
+      expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
+      expect(getCacheForMock).toHaveBeenCalledWith(
+        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0.js',
+        '075dd3a9f4007daabf4629bffeb89644f1c55ec0',
+        {'country': 'nl'}
+      );
+      expect(fetchImmutableUrlOrDieMock).not.toHaveBeenCalled();
+      expect(injectAmpExpMock).not.toHaveBeenCalledWith();
+      expect(enqueueCacheAndCloneMock).not.toHaveBeenCalledWith();
     });
   });
 
@@ -379,7 +518,7 @@ describe('router', () => {
       );
 
       expect(response.status).toEqual(404);
-      expect(await response.text()).toEqual('🌩 404 Error: Not Found');
+      await expect(response.text()).resolves.toEqual('🌩 404 Error: Not Found');
     });
 
     it('other errors', async () => {
@@ -392,7 +531,7 @@ describe('router', () => {
       const response = await router.run(makeFetchEvent('/v0.js'));
 
       expect(response.status).toEqual(500);
-      expect(await response.text()).toEqual(
+      await expect(response.text()).resolves.toEqual(
         '🌩 500 Error: Internal Server Error'
       );
     });

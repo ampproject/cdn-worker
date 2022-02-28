@@ -3,14 +3,20 @@
  */
 
 import {Router} from 'worktop';
+import {KV, read} from 'worktop/kv';
 import {ServerRequest} from 'worktop/request';
 
 import {FetchError} from './errors';
 import {CacheControl, ContentType, HeaderKeys, withHeaders} from './headers';
-import {injectAmpExp, injectAmpGeo} from './injectors';
+import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
+import {enqueueCacheAndClone, getCacheFor, hashObject} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
 import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
+import {getAmpFileUrl} from './storage-util';
+
+// KV Binding via `wrangler.toml` config.
+declare const CONFIG: KV.Namespace;
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [HeaderKeys.CONTENT_TYPE, ContentType.APPLICATION_JSON],
@@ -27,9 +33,9 @@ const router = new Router();
 
 router.onerror = (req, res, status, error) => {
   if (!(error instanceof FetchError)) {
-    console.error(error);
     error = new FetchError(status ?? 500, 'Internal Server Error');
   }
+  console.error(error?.stack ?? error);
   return new Response(error.message, {status: (error as FetchError).status});
 };
 
@@ -47,16 +53,45 @@ router.add('GET', '/rtv/metadata', async (request) => {
   );
 });
 
+/**
+ * Handles amp-geo requests.
+ * @param req - the request object.
+ * @param rtv - RTV number to use.
+ * @param path - path to the requested amp-geo file, must start with `/`.
+ * @returns a dynamically injected amp-geo response, possibly from cache.
+ */
+async function ampGeoRequest(
+  {cf, extend}: ServerRequest,
+  rtv: string,
+  path: string
+): Promise<Response> {
+  const url = getAmpFileUrl(rtv, path);
+  const cacheKey = `${cf.country ?? ''};${cf.regionCode ?? ''}`;
+
+  const cachedResponse = await getCacheFor(url, cacheKey, cf);
+  if (cachedResponse) {
+    console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
+    return withHeaders(cachedResponse, CacheControl.AMP_GEO);
+  }
+  console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+
+  const response = await injectAmpGeo(
+    await fetchImmutableUrlOrDie(url),
+    cf.country,
+    cf.regionCode
+  );
+
+  return withHeaders(
+    enqueueCacheAndClone(extend, response, url, cacheKey),
+    CacheControl.AMP_GEO
+  );
+}
+
 router.add(
   'GET',
   /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
-  async ({cf, params}) => {
-    const response = await fetchImmutableAmpFileOrDie(params.rtv, params.wild);
-
-    return withHeaders(
-      await injectAmpGeo(response, cf.country, cf.regionCode),
-      CacheControl.AMP_GEO
-    );
+  (req) => {
+    return ampGeoRequest(req, req.params.rtv, req.params.wild);
   }
 );
 
@@ -74,10 +109,28 @@ router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
   console.log('Serving unversioned entry-file request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
+  const ampExpConfig = (await read<AmpExp>(CONFIG, 'AMP_EXP', {
+    type: 'json',
+  })) ?? {experiments: []};
+
+  const url = getAmpFileUrl(rtv, req.path);
+  const cacheKey = await hashObject(ampExpConfig);
+
+  const cachedResponse = await getCacheFor(url, cacheKey, req.cf);
+  if (cachedResponse) {
+    console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
+    return withHeaders(cachedResponse, CacheControl.ENTRY_FILE);
+  }
+  console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+
+  const response = await injectAmpExp(
+    await fetchImmutableUrlOrDie(url),
+    rtv,
+    ampExpConfig
+  );
 
   return withHeaders(
-    await injectAmpExp(response, rtv),
+    enqueueCacheAndClone(req.extend, response, url, cacheKey),
     CacheControl.ENTRY_FILE
   );
 });
@@ -86,18 +139,13 @@ router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
   console.log('Serving unversioned amp-geo request to', req.path);
 
   const rtv = await chooseRtv(req);
-  const response = await fetchImmutableAmpFileOrDie(rtv, req.path);
-
-  return withHeaders(
-    await injectAmpGeo(response, req.cf.country, req.cf.regionCode),
-    CacheControl.AMP_GEO
-  );
+  return ampGeoRequest(req, rtv, req.path);
 });
 
 /**
  * Handles unversioned requests to /experiments.html.
  *
- * @param request - the request object.
+ * @param req - the request object.
  * @returns Response object with experiments.html content.
  */
 async function unversionedExperimentsRequest(

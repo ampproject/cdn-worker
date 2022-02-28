@@ -2,12 +2,7 @@
  * Contains functions that inject dynamic content.
  */
 
-import {KV, read} from 'worktop/kv';
-
-// KV Binding via `wrangler.toml` config.
-declare const CONFIG: KV.Namespace;
-
-interface AmpExp {
+export interface AmpExp {
   experiments: Array<{
     name: string;
     percentage: number;
@@ -24,14 +19,9 @@ interface AmpExp {
  */
 export async function injectAmpExp(
   response: Response,
-  rtv: string
+  rtv: string,
+  ampExpConfig: AmpExp
 ): Promise<Response> {
-  const ampExpConfig = await read<AmpExp>(CONFIG, 'AMP_EXP', {type: 'json'});
-  if (!ampExpConfig) {
-    console.warn('AMP_EXP config is missing from KV store, skipping injection');
-    return response;
-  }
-
   const ampExpJson = Object.fromEntries(
     ampExpConfig.experiments
       .filter(
