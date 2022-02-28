@@ -12,7 +12,11 @@ import {Router} from 'worktop/router';
 import {FetchError} from '../src/errors';
 import {CacheControl} from '../src/headers';
 import {injectAmpExp, injectAmpGeo} from '../src/injectors';
-import {enqueueCacheAndClone, getCacheFor} from '../src/injectors-cache';
+import {
+  enqueueCacheAndClone,
+  getCacheFor,
+  hashObject,
+} from '../src/injectors-cache';
 import {rtvMetadata} from '../src/metadata';
 import router from '../src/router';
 import {chooseRtv} from '../src/rtv';
@@ -45,6 +49,7 @@ const injectAmpExpMock = mocked(injectAmpExp);
 const injectAmpGeoMock = mocked(injectAmpGeo);
 
 jest.mock('../src/injectors-cache');
+const hashObjectMock = mocked(hashObject);
 const enqueueCacheAndCloneMock = mocked(enqueueCacheAndClone);
 const getCacheForMock = mocked(getCacheFor);
 
@@ -342,6 +347,9 @@ describe('router', () => {
           headers: {'content-type': 'text/javascript'},
         });
         readMock.mockResolvedValue(undefined);
+        hashObjectMock.mockResolvedValue(
+          '33f8b592a7722000aa8a50cce7e61ad4aaa019fe'
+        );
         getCacheForMock.mockResolvedValue(undefined);
         fetchImmutableUrlOrDieMock.mockResolvedValue(expectedResponse);
         injectAmpExpMock.mockImplementation(async (response) => response);
@@ -469,6 +477,9 @@ describe('router', () => {
       readMock.mockResolvedValue({
         experiments: [{name: 'foo', percentage: 0.1}],
       });
+      hashObjectMock.mockResolvedValue(
+        '075dd3a9f4007daabf4629bffeb89644f1c55ec0'
+      );
       getCacheForMock.mockResolvedValue(
         new Response('…var global=self;…', {
           headers: {'content-type': 'text/javascript'},

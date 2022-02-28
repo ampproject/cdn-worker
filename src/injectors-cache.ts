@@ -34,7 +34,12 @@ function cacheKeyBrotli(...parts: string[]): string {
   return cacheKey(...parts, ContentEncoding.BROTLI);
 }
 
-/** */
+/**
+ * Performs a SHA-1 hashes of an object via its JSON.stringify representation.
+ *
+ * @param obj - JSON.stringifiable object.
+ * @returns - SHA-1 digest of the object as a hex string.
+ */
 export async function hashObject(obj: unknown): Promise<string> {
   const hashBuffer = await crypto.subtle.digest(
     'SHA-1',
