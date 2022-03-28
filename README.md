@@ -2,7 +2,7 @@
 
 This repository is the source code for the web worker that powers the [AMP](https://amp.dev/) project's CDN server. This web worker runs on [Cloudflare Workers](https://workers.cloudflare.com/).
 
-**This repository is a work in progress. See the [intent to implement](https://github.com/ampproject/amphtml/issues/36152) issue on the [amphtml](https://github.com/ampproject/amphtml) repository.**
+A detailed explanation of the inner workings of this server is available in its original [design document](https://docs.google.com/document/d/1QD0SBwgmZxrvJTpv68ytTI2oKxq4EOi-mkSCKm2JTPc/edit).
 
 ## Other useful information
 
