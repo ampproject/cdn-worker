@@ -3,7 +3,6 @@
  */
 
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
-import {mocked} from 'ts-jest/utils';
 
 import * as brotli from '../src/brotli-wasm-wrapper';
 import {
@@ -13,7 +12,7 @@ import {
 import {enqueueCacheAndClone, getCacheFor} from '../src/injectors-cache';
 
 jest.mock('../src/brotli-wasm-wrapper');
-const brotliCompressMock = mocked(brotli.compress);
+const brotliCompressMock = jest.mocked(brotli.compress);
 
 const cacheMatchMock = jest.fn<Promise<Response | undefined>, [string]>();
 const cachePutMock = jest.fn<Promise<void>, [string, Response]>();

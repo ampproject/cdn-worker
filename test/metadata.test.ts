@@ -3,7 +3,6 @@
  */
 
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
-import {mocked} from 'ts-jest/utils';
 import {list, read} from 'worktop/kv';
 
 import {rtvMetadata} from '../src/metadata';
@@ -18,8 +17,8 @@ jest.mock('worktop/kv', () => ({
   list: jest.fn(),
   read: jest.fn(),
 }));
-const listMock = mocked(list);
-const readMock = mocked(read);
+const listMock = jest.mocked(list);
+const readMock = jest.mocked(read);
 
 describe('metadata', () => {
   beforeAll(() => {

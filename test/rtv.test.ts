@@ -3,14 +3,13 @@
  */
 
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
-import {mocked} from 'ts-jest/utils';
 import {read} from 'worktop/kv';
 import {ServerRequest} from 'worktop/request';
 
 import {chooseRtv} from '../src/rtv';
 
 jest.mock('worktop/kv');
-const readMock = mocked(read);
+const readMock = jest.mocked(read);
 
 // Object to match the last parameter passed to mock `read` function calls.
 const opts = {
