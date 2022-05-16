@@ -5,9 +5,7 @@
 import {beforeEach} from '@jest/globals';
 import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import makeServiceWorkerEnv from 'service-worker-mock';
-import {mocked} from 'ts-jest/utils';
 import {read} from 'worktop/kv';
-import {Router} from 'worktop/router';
 
 import {FetchError} from '../src/errors';
 import {CacheControl} from '../src/headers';
@@ -25,37 +23,27 @@ import {
   fetchImmutableUrlOrDie,
 } from '../src/storage';
 
-// This is a hack around Jest's limitation with respect to loading ECMAScript
-// modules. The 'worktop' module re-exports the `Router` class from
-// 'worktop/router', but 'worktop/router' is not a valid import that the
-// TypeScript compiler understands, only 'ts-jest' does. This allows the real
-// source code to import `Router` from 'worktop', and forces the test to load it
-// from 'worktop/router'.
-jest.mock('worktop', () => ({
-  Router,
-}));
-
 jest.mock('worktop/kv');
-const readMock = mocked(read);
+const readMock = jest.mocked(read);
 
 jest.mock('../src/metadata');
-const rtvMetadataMock = mocked(rtvMetadata);
+const rtvMetadataMock = jest.mocked(rtvMetadata);
 
 jest.mock('../src/rtv');
-const chooseRtvMock = mocked(chooseRtv);
+const chooseRtvMock = jest.mocked(chooseRtv);
 
 jest.mock('../src/injectors');
-const injectAmpExpMock = mocked(injectAmpExp);
-const injectAmpGeoMock = mocked(injectAmpGeo);
+const injectAmpExpMock = jest.mocked(injectAmpExp);
+const injectAmpGeoMock = jest.mocked(injectAmpGeo);
 
 jest.mock('../src/injectors-cache');
-const hashObjectMock = mocked(hashObject);
-const enqueueCacheAndCloneMock = mocked(enqueueCacheAndClone);
-const getCacheForMock = mocked(getCacheFor);
+const hashObjectMock = jest.mocked(hashObject);
+const enqueueCacheAndCloneMock = jest.mocked(enqueueCacheAndClone);
+const getCacheForMock = jest.mocked(getCacheFor);
 
 jest.mock('../src/storage');
-const fetchImmutableUrlOrDieMock = mocked(fetchImmutableUrlOrDie);
-const fetchImmutableAmpFileOrDieMock = mocked(fetchImmutableAmpFileOrDie);
+const fetchImmutableUrlOrDieMock = jest.mocked(fetchImmutableUrlOrDie);
+const fetchImmutableAmpFileOrDieMock = jest.mocked(fetchImmutableAmpFileOrDie);
 
 /** Makes a FetchEvent-like object to be used by router.run. */
 function makeFetchEvent(path: string): FetchEvent {
