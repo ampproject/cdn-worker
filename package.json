@@ -21,7 +21,7 @@
     "@types/service-worker-mock": "2.0.1",
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",
-    "esbuild": "0.14.46",
+    "esbuild": "0.14.47",
     "esbuild-plugin-ignore": "1.1.1",
     "esbuild-plugin-text-replace": "1.2.0",
     "eslint": "8.18.0",
