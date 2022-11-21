@@ -16,7 +16,7 @@
     "worktop": "0.7.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "3.18.0",
+    "@cloudflare/workers-types": "4.20221111.1",
     "@types/jest": "29.2.3",
     "@types/service-worker-mock": "2.0.1",
     "@typescript-eslint/eslint-plugin": "5.43.0",
