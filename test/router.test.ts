@@ -192,12 +192,12 @@ describe('router', () => {
       );
 
       expect(getCacheForMock).toHaveBeenCalledWith(
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'nl;',
         {'country': 'nl'}
       );
       expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js'
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js'
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
@@ -207,7 +207,7 @@ describe('router', () => {
       expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Response),
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'nl;'
       );
     });
@@ -230,7 +230,9 @@ describe('router', () => {
         const response = await router.run(makeFetchEvent(path));
 
         expect(response.status).toEqual(200);
-        expect(response.headers.get('content-type')).toEqual('text/html');
+        expect(response.headers.get('content-type')).toEqual(
+          'text/html; charset=UTF-8'
+        );
         expect(response.headers.get('cache-control')).toEqual(
           CacheControl.ENTRY_FILE
         );
@@ -366,12 +368,12 @@ describe('router', () => {
 
         expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
         expect(getCacheForMock).toHaveBeenCalledWith(
-          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`,
+          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`,
           '33f8b592a7722000aa8a50cce7e61ad4aaa019fe',
           {'country': 'nl'}
         );
         expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`
+          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`
         );
         expect(injectAmpExpMock).toHaveBeenCalledWith(
           expect.any(Response),
@@ -381,7 +383,7 @@ describe('router', () => {
         expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
           expect.any(Function),
           expect.any(Response),
-          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000${path}`,
+          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`,
           '33f8b592a7722000aa8a50cce7e61ad4aaa019fe'
         );
       }
@@ -416,12 +418,12 @@ describe('router', () => {
       );
 
       expect(getCacheForMock).toHaveBeenCalledWith(
-        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`,
+        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`,
         'nl;',
         {'country': 'nl'}
       );
       expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`
+        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
@@ -431,7 +433,7 @@ describe('router', () => {
       expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Response),
-        `https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/${file}`,
+        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`,
         'nl;'
       );
     });
@@ -467,7 +469,7 @@ describe('router', () => {
         );
 
         expect(getCacheForMock).toHaveBeenCalledWith(
-          'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+          'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
           'nl;',
           {'country': 'nl'}
         );
@@ -503,7 +505,7 @@ describe('router', () => {
 
       expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
       expect(getCacheForMock).toHaveBeenCalledWith(
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/012105150310000/v0.js',
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0.js',
         '075dd3a9f4007daabf4629bffeb89644f1c55ec0',
         {'country': 'nl'}
       );

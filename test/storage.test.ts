@@ -134,7 +134,7 @@ describe('storage', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/002105150310000/v0.js',
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/002105150310000/v0.js',
         {
           cf: {cacheEverything: true, cacheTtl: 31536000},
         }
@@ -154,7 +154,7 @@ describe('storage', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        'https://storage.googleapis.com/org-cdn/org-cdn/rtv/002105150310000/v0.js',
+        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/002105150310000/v0.js',
         {
           cf: {cacheEverything: true, cacheTtl: 31536000},
         }
@@ -192,7 +192,7 @@ describe('storage', () => {
 
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(
-          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
           {
             cf: {cacheEverything: true, cacheTtl: 31536000},
           }
@@ -231,7 +231,7 @@ describe('storage', () => {
 
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith(
-          `https://storage.googleapis.com/org-cdn/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
+          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/${expectedRtvPrefix}2105150310000/v0/amp-list-0.1.js`,
           {
             cf: {cacheEverything: true, cacheTtl: 31536000},
           }

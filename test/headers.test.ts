@@ -18,7 +18,7 @@ describe('headers', () => {
   it('responds with headers', async () => {
     const inputResponse = new Response('alert("!");', {
       headers: {
-        'content-type': 'application/javascript',
+        'content-type': 'text/javascript',
         'x-other-header': 'kittens',
       },
       status: 200,
