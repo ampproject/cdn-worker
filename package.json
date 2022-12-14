@@ -2,7 +2,7 @@
   "name": "amp-cdn-worker",
   "version": "1.0.0",
   "description": "Cloudflare Worker code for the AMP runtime CDN",
-  "main": "dist/worker.js",
+  "main": "dist/worker.mjs",
   "scripts": {
     "build": "node ./esbuild.js",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
