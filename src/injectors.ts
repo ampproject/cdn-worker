@@ -2,6 +2,8 @@
  * Contains functions that inject dynamic content.
  */
 
+import {Response, console} from '@cloudflare/workers-types';
+
 export interface AmpExp {
   experiments: Array<{
     name: string;

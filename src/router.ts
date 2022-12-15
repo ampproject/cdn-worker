@@ -2,9 +2,16 @@
  * Contains request routing logic.
  */
 
-import {Router} from 'worktop';
-import {KV, read} from 'worktop/kv';
-import {ServerRequest} from 'worktop/request';
+import {
+  Request as CloudflareWorkersTypeRequest,
+  FetchEvent,
+  IncomingRequestCfProperties,
+  KVNamespace,
+  Response,
+  console,
+  URL,
+} from '@cloudflare/workers-types';
+import {Request as IttyRouterRequest, Router} from 'itty-router';
 
 import {FetchError} from './errors';
 import {
@@ -21,8 +28,16 @@ import {chooseRtv} from './rtv';
 import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
 import {getAmpFileUrl} from './storage-util';
 
+type Request = CloudflareWorkersTypeRequest &
+  IttyRouterRequest & {
+    origin: string;
+    path: string;
+    cf: IncomingRequestCfProperties;
+    params: Record<string, string>;
+  };
+
 // KV Binding via `wrangler.toml` config.
-declare const CONFIG: KV.Namespace;
+declare const CONFIG: KVNamespace;
 
 const RTV_METADATA_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   [
@@ -38,7 +53,15 @@ const EXPERIMENTS_EXTRA_HEADERS: ReadonlyMap<HeaderKeys, string> = new Map([
   ],
 ]);
 
-const router = new Router();
+const router = Router<Request>();
+
+/** */
+function withUrl(req: Request): Request {
+  const url = new URL(req.url);
+  req.path = url.pathname;
+  req.origin = url.origin;
+  return req;
+}
 
 router.onerror = (req, res, status, error) => {
   if (!(error instanceof FetchError)) {
@@ -48,13 +71,13 @@ router.onerror = (req, res, status, error) => {
   return new Response(error.message, {status: (error as FetchError).status});
 };
 
-router.add('GET', '/', () => Response.redirect('https://amp.dev/'));
+router.get('/', withUrl, () => Response.redirect('https://amp.dev/'));
 
-router.add('GET', '/favicon.ico', () => {
+router.get('/favicon.ico', withUrl, () => {
   return fetchImmutableUrlOrDie('https://amp.dev/static/img/favicon.png');
 });
 
-router.add('GET', '/rtv/metadata', async (request) => {
+router.get('/rtv/metadata', withUrl, async (request) => {
   return withHeaders(
     await rtvMetadata(request.origin),
     CacheControl.RTV_METADATA_FILE,
@@ -70,7 +93,8 @@ router.add('GET', '/rtv/metadata', async (request) => {
  * @returns a dynamically injected amp-geo response, possibly from cache.
  */
 async function ampGeoRequest(
-  {cf, extend}: ServerRequest,
+  {cf}: Request,
+  waitUntil: FetchEvent['waitUntil'],
   rtv: string,
   path: string
 ): Promise<Response> {
@@ -91,20 +115,20 @@ async function ampGeoRequest(
   );
 
   return withHeaders(
-    enqueueCacheAndClone(extend, response, url, cacheKey),
+    enqueueCacheAndClone(waitUntil, response, url, cacheKey),
     CacheControl.AMP_GEO
   );
 }
 
-router.add(
-  'GET',
-  /^\/rtv\/(?<rtv>\d+)(?<wild>\/v0\/amp-geo-.+\.m?js)$/,
-  (req) => {
-    return ampGeoRequest(req, req.params.rtv, req.params.wild);
+router.get(
+  '/rtv/:rtv/v0/amp-geo*',
+  withUrl,
+  (req: Request, waitUntil: FetchEvent['waitUntil']) => {
+    return ampGeoRequest(req, waitUntil, req.params?.rtv, req.params?.wild);
   }
 );
 
-router.add('GET', '/rtv/:rtv/*', async ({cf, params}) => {
+router.get('/rtv/:rtv/*', withUrl, async ({cf, params}: Request) => {
   const response = await fetchImmutableAmpFileOrDie(
     params.rtv,
     `/${params.wild}`,
@@ -114,42 +138,49 @@ router.add('GET', '/rtv/:rtv/*', async ({cf, params}) => {
   return withHeaders(response, CacheControl.STATIC_RTV_FILE);
 });
 
-router.add('GET', /^\/(?:\w+-)?v0\.m?js$/, async (req) => {
-  console.log('Serving unversioned entry-file request to', req.path);
+router.get(
+  /^\/(?:\w+-)?v0\.m?js$/,
+  async (req: Request, waitUntil: FetchEvent['waitUntil']) => {
+    console.log('Serving unversioned entry-file request to', req.path);
 
-  const rtv = await chooseRtv(req);
-  const ampExpConfig = (await read<AmpExp>(CONFIG, 'AMP_EXP', {
-    type: 'json',
-  })) ?? {experiments: []};
+    const rtv = await chooseRtv(req);
+    const ampExpConfig = (await CONFIG.get<AmpExp>('AMP_EXP', 'json')) ?? {
+      experiments: [],
+    };
 
-  const url = getAmpFileUrl(rtv, req.path);
-  const cacheKey = await hashObject(ampExpConfig);
+    const url = getAmpFileUrl(rtv, req.path);
+    const cacheKey = await hashObject(ampExpConfig);
 
-  const cachedResponse = await getCacheFor(url, cacheKey, req.cf);
-  if (cachedResponse) {
-    console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
-    return withHeaders(cachedResponse, CacheControl.ENTRY_FILE);
+    const cachedResponse = await getCacheFor(url, cacheKey, req.cf);
+    if (cachedResponse) {
+      console.log('Serving', url, 'with dynamic key', cacheKey, 'from cache');
+      return withHeaders(cachedResponse, CacheControl.ENTRY_FILE);
+    }
+    console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+
+    const response = await injectAmpExp(
+      await fetchImmutableUrlOrDie(url),
+      rtv,
+      ampExpConfig
+    );
+
+    return withHeaders(
+      enqueueCacheAndClone(waitUntil, response, url, cacheKey),
+      CacheControl.ENTRY_FILE
+    );
   }
-  console.log('Cache miss for', url, 'with dynamic key', cacheKey);
+);
 
-  const response = await injectAmpExp(
-    await fetchImmutableUrlOrDie(url),
-    rtv,
-    ampExpConfig
-  );
+router.get(
+  /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/,
+  withUrl,
+  async (req: Request, waitUntil: FetchEvent['waitUntil']) => {
+    console.log('Serving unversioned amp-geo request to', req.path);
 
-  return withHeaders(
-    enqueueCacheAndClone(req.extend, response, url, cacheKey),
-    CacheControl.ENTRY_FILE
-  );
-});
-
-router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
-  console.log('Serving unversioned amp-geo request to', req.path);
-
-  const rtv = await chooseRtv(req);
-  return ampGeoRequest(req, rtv, req.path);
-});
+    const rtv = await chooseRtv(req);
+    return ampGeoRequest(req, waitUntil, rtv, req.path);
+  }
+);
 
 /**
  * Handles unversioned requests to /experiments.html.
@@ -157,9 +188,7 @@ router.add('GET', /^(?:\/lts)?\/v0\/amp-geo-.+\.m?js$/, async (req) => {
  * @param req - the request object.
  * @returns Response object with experiments.html content.
  */
-async function unversionedExperimentsRequest(
-  req: ServerRequest
-): Promise<Response> {
+async function unversionedExperimentsRequest(req: Request): Promise<Response> {
   console.log('Serving unversioned experiments.html request to', req.path);
 
   const rtv = await chooseRtv(req);
@@ -172,8 +201,8 @@ async function unversionedExperimentsRequest(
   );
 }
 
-router.add('GET', '/lts/experiments.html', unversionedExperimentsRequest);
-router.add('GET', '/experiments.html', unversionedExperimentsRequest);
+router.get('/lts/experiments.html', unversionedExperimentsRequest);
+router.get('/experiments.html', unversionedExperimentsRequest);
 
 /**
  * Handles unversioned requests to service worker files.
@@ -182,7 +211,7 @@ router.add('GET', '/experiments.html', unversionedExperimentsRequest);
  * @returns Response object with service worker content.
  */
 async function unversionedServiceWorkerRequest(
-  req: ServerRequest
+  req: Request
 ): Promise<Response> {
   console.log('Serving unversioned service worker request to', req.path);
 
@@ -192,10 +221,10 @@ async function unversionedServiceWorkerRequest(
   return withHeaders(response, CacheControl.SERVICE_WORKER_FILE);
 }
 
-router.add('GET', '/lts/sw/*', unversionedServiceWorkerRequest);
-router.add('GET', '/sw/*', unversionedServiceWorkerRequest);
+router.get('/lts/sw/*', unversionedServiceWorkerRequest);
+router.get('/sw/*', unversionedServiceWorkerRequest);
 
-router.add('GET', '/lts/*', async (req) => {
+router.get('/lts/*', async (req: Request) => {
   console.log('Serving unversioned LTS request to', req.path);
   const rtv = await chooseRtv(req);
   const response = await fetchImmutableAmpFileOrDie(rtv, req.path, req.cf);
@@ -203,7 +232,7 @@ router.add('GET', '/lts/*', async (req) => {
   return withHeaders(response, CacheControl.LTS);
 });
 
-router.add('GET', '/*', async (req) => {
+router.get('/*', async (req: Request) => {
   console.log('Serving unversioned request to', req.path);
 
   const rtv = await chooseRtv(req);

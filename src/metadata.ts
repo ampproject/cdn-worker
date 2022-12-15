@@ -3,12 +3,39 @@
  * JSON file.
  */
 
-import {KV, list, read} from 'worktop/kv';
+import {
+  KVNamespace,
+  KVNamespaceListResult,
+  Response,
+  console,
+} from '@cloudflare/workers-types';
 
 import {Channel} from './rtv';
 
 // KV Binding via `wrangler.toml` config.
-declare const RTV: KV.Namespace;
+declare const RTV: KVNamespace;
+
+/**
+ * Helper function that lists all keys in a KVNamespace.
+ */
+async function listAllKeys<Key extends string>(
+  kv: KVNamespace<Key>
+): Promise<Key[]> {
+  const keys: Key[] = [];
+  let cursor;
+  while (true) {
+    const listResult: KVNamespaceListResult<unknown, Key> = await kv.list({
+      cursor,
+    });
+    keys.push(...listResult.keys.map(({name}) => name));
+
+    if (listResult.list_complete) {
+      return keys;
+    }
+
+    cursor = listResult.cursor;
+  }
+}
 
 /**
  * Dynamically generates the /rtv/metadata JSON file.
@@ -19,17 +46,9 @@ declare const RTV: KV.Namespace;
 export async function rtvMetadata(origin: string): Promise<Response> {
   console.log('Generating /rtv/metadata');
 
-  const kvSpaces = list(RTV, {metadata: false});
   const rtvs = new Map<string, string>();
-  for await (const kvSpace of kvSpaces) {
-    await Promise.all(
-      kvSpace.keys.map(async (channel) => {
-        const rtv = await read<string>(RTV, channel, {
-          type: 'text',
-        });
-        rtvs.set(channel, rtv as string);
-      })
-    );
+  for (const channel of await listAllKeys(RTV)) {
+    rtvs.set(channel, (await RTV.get(channel)) as string);
   }
 
   const stableRtv = rtvs.get(Channel.STABLE);

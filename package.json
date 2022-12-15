@@ -13,7 +13,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "brotli-wasm": "1.1.0",
-    "worktop": "0.7.3"
+    "itty-router": "2.6.6",
+    "itty-router-extras": "0.4.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20221111.1",

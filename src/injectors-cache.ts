@@ -2,12 +2,21 @@
  * Contains functions that inject dynamic content.
  */
 
+import {
+  FetchEvent,
+  IncomingRequestCfProperties,
+  Response,
+  TextEncoder,
+  caches,
+  console,
+  crypto,
+} from '@cloudflare/workers-types';
+
 import * as brotli from './brotli-wasm-wrapper';
 import {
   CacheControl,
   ContentEncoding,
   HeaderKeys,
-  IncomingCloudflarePropertiesExtended,
   supportsBrotli,
 } from './headers';
 
@@ -62,8 +71,12 @@ export async function hashObject(obj: unknown): Promise<string> {
 export async function getCacheFor(
   url: string,
   key: string,
-  cf: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCfProperties
 ): Promise<Response | undefined> {
+  if (!cf) {
+    return new Response('Bad Request', {status: 400});
+  }
+
   const cache = await caches.open(INJECTORS_CACHE_NAME);
   return supportsBrotli(cf)
     ? cache.match(cacheKeyBrotli(url, key))

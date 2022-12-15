@@ -1,3 +1,4 @@
+import {ServiceWorkerGlobalScope, WebAssembly} from '@cloudflare/workers-types';
 import brotliImportPromise from 'brotli-wasm';
 import type {BrotliModule, Options} from 'brotli-wasm';
 
@@ -8,7 +9,7 @@ declare const BROTLI_WASM: WebAssembly.Module;
 // dependency file brotli_wasm_bg.js with `globalThis.__BROTLI_WASM_INSTANCE`.
 // Note that initially this field is undefined. The exported functions in this
 // wrapper first await on `init_()` to ensure this field is initialized.
-declare const globalThis: DedicatedWorkerGlobalScope & {
+declare const globalThis: ServiceWorkerGlobalScope & {
   __BROTLI_WASM_INSTANCE: WebAssembly.Exports & BrotliModule;
 };
 

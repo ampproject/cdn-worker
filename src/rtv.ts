@@ -2,13 +2,10 @@
  * Contains functions that choose an RTV based on the request.
  */
 
-import * as Cookie from 'worktop/cookie';
-import {KV} from 'worktop/kv';
-import {read} from 'worktop/kv';
-import {ServerRequest} from 'worktop/request';
+import {KVNamespace, Request, URL, console} from '@cloudflare/workers-types';
 
 // KV Binding via `wrangler.toml` config.
-declare const RTV: KV.Namespace;
+declare const RTV: KVNamespace;
 
 export enum Channel {
   STABLE = 'stable',
@@ -45,11 +42,12 @@ function maybeAddOptInSuffix(channel: string | null): string | null {
  * @param request - the request object.
  * @returns the chosen RTV.
  */
-export async function chooseRtv(request: ServerRequest): Promise<string> {
+export async function chooseRtv(request: Request): Promise<string> {
   const optInCookie = maybeAddOptInSuffix(
     Cookie.parse(request.headers.get('cookie') ?? '')['__Host-AMP_OPT_IN']
   );
-  const optInQueryParam = maybeAddOptInSuffix(request.query.get('optin'));
+  const {pathname, searchParams} = new URL(request.url);
+  const optInQueryParam = maybeAddOptInSuffix(searchParams.get('optin'));
 
   // Choose which channel to opt in to based on the following order.
   const channelChooser = [
@@ -58,7 +56,7 @@ export async function chooseRtv(request: ServerRequest): Promise<string> {
     // Query param (?optin=channel-name):
     optInQueryParam,
     // LTS request:
-    request.path.startsWith('/lts') && Channel.LTS,
+    pathname.startsWith('/lts') && Channel.LTS,
     // Default to Stable:
     Channel.STABLE,
   ].filter(
@@ -71,7 +69,7 @@ export async function chooseRtv(request: ServerRequest): Promise<string> {
       return channel;
     }
 
-    const rtv = await read(RTV, channel, {type: 'text'});
+    const rtv = await RTV.get(channel);
     if (rtv) {
       console.log('Chose RTV', rtv);
       return rtv;

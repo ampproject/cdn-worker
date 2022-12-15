@@ -2,18 +2,26 @@
  * Contains functions that interact with the backing storage.
  */
 
+import {
+  IncomingRequestCfProperties,
+  RequestInit,
+  RequestInitCfProperties,
+  Response,
+  console,
+  fetch,
+} from '@cloudflare/workers-types';
+
 import {FetchError} from './errors';
 import {
   CHARSET_UTF_8,
   ContentEncoding,
   ContentType,
   HeaderKeys,
-  IncomingCloudflarePropertiesExtended,
   supportsBrotli,
 } from './headers';
 import {getAmpFileUrl} from './storage-util';
 
-const FETCH_OPTIONS: RequestInit = {
+const FETCH_OPTIONS: RequestInit<RequestInitCfProperties> = {
   cf: {cacheEverything: true, cacheTtl: 31536000},
 };
 
@@ -31,7 +39,7 @@ const FETCH_OPTIONS: RequestInit = {
  */
 export async function fetchImmutableUrlOrDie(
   url: string,
-  cf?: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCfProperties
 ): Promise<Response> {
   const responsePromise = fetch(url, FETCH_OPTIONS);
   const brotliResponsePromise = supportsBrotli(cf)
@@ -84,7 +92,7 @@ export async function fetchImmutableUrlOrDie(
 export async function fetchImmutableAmpFileOrDie(
   rtv: string,
   path: string,
-  cf?: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCfProperties
 ): Promise<Response> {
   return fetchImmutableUrlOrDie(getAmpFileUrl(rtv, path), cf);
 }

@@ -1,20 +1,16 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "commonjs",
-    "target": "ES2020",
-    "lib": ["ES2020", "WebWorker", "Webworker.Iterable"],
+    "module": "ES2022",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "alwaysStrict": true,
     "strict": true,
     "preserveConstEnums": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "esModuleInterop": true,
-    "types": [
-      "@cloudflare/workers-types",
-      "@types/jest",
-      "@types/service-worker-mock"
-    ]
+    "esModuleInterop": true
+    //    "types": ["@types/jest", "@types/service-worker-mock"]
   },
   "include": ["src", "types"],
   "exclude": ["node_modules", "dist", "test"]
