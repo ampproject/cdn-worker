@@ -2,8 +2,7 @@
  * Contains helper functions for interacting with the backing storage.
  */
 
-const STORAGE_BASE_URL =
-  'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/';
+declare const STORAGE_BASE_URL: string;
 
 const V0_DEDUP_RTV_PREFIXES: ReadonlySet<string> = new Set([
   '00',

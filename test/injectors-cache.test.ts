@@ -50,14 +50,14 @@ describe('injectors-cache', () => {
       cacheMatchMock.mockResolvedValue(new Response('javascript;'));
 
       const response = await getCacheFor(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'NL;',
         cfSupportsBrotli
       );
       expect(response).toBeDefined();
 
       expect(cacheMatchMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;NL;;br'
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;NL;;br'
       );
     });
 
@@ -65,14 +65,14 @@ describe('injectors-cache', () => {
       cacheMatchMock.mockResolvedValue(new Response('javascript;'));
 
       const response = await getCacheFor(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'US;NY',
         cfDoesNotSupportBrotli
       );
       expect(response).toBeDefined();
 
       expect(cacheMatchMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY'
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY'
       );
     });
 
@@ -80,14 +80,14 @@ describe('injectors-cache', () => {
       cacheMatchMock.mockResolvedValue(undefined);
 
       const response = await getCacheFor(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0.js',
         'edaf9e1f7bd5aa20f61c78be7017134eafb88de3',
         cfSupportsBrotli
       );
       expect(response).toBeUndefined();
 
       expect(cacheMatchMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0.js;edaf9e1f7bd5aa20f61c78be7017134eafb88de3;br'
+        'https://example.com/org-cdn/rtv/012105150310000/v0.js;edaf9e1f7bd5aa20f61c78be7017134eafb88de3;br'
       );
     });
   });
@@ -107,7 +107,7 @@ describe('injectors-cache', () => {
       const response = enqueueCacheAndClone(
         extendMock,
         inputResponse,
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'US;NY'
       );
 
@@ -117,12 +117,12 @@ describe('injectors-cache', () => {
       expect(cachePutMock).toHaveBeenCalledTimes(2);
       expect(cachePutMock).toHaveBeenNthCalledWith(
         1,
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY',
         expect.any(Response)
       );
       expect(cachePutMock).toHaveBeenNthCalledWith(
         2,
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY;br',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js;US;NY;br',
         expect.any(Response)
       );
       expect(brotliCompressMock).toHaveBeenCalledWith(
@@ -149,7 +149,7 @@ describe('injectors-cache', () => {
         enqueueCacheAndClone(
           extendMock,
           new Response(null),
-          'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+          'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
           'US;NY'
         );
       }).toThrow('Response has no body');

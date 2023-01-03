@@ -75,7 +75,9 @@ function makeFetchEvent(path: string): FetchEvent {
 
 describe('router', () => {
   beforeAll(() => {
-    Object.assign(global, makeServiceWorkerEnv());
+    Object.assign(global, makeServiceWorkerEnv(), {
+      STORAGE_BASE_URL: 'https://example.com/org-cdn/rtv/',
+    });
     enableFetchMocks();
   });
 
@@ -192,12 +194,12 @@ describe('router', () => {
       );
 
       expect(getCacheForMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'nl;',
         {'country': 'nl'}
       );
       expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js'
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js'
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
@@ -207,7 +209,7 @@ describe('router', () => {
       expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Response),
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
         'nl;'
       );
     });
@@ -368,12 +370,12 @@ describe('router', () => {
 
         expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
         expect(getCacheForMock).toHaveBeenCalledWith(
-          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`,
+          `https://example.com/org-cdn/rtv/012105150310000${path}`,
           '33f8b592a7722000aa8a50cce7e61ad4aaa019fe',
           {'country': 'nl'}
         );
         expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`
+          `https://example.com/org-cdn/rtv/012105150310000${path}`
         );
         expect(injectAmpExpMock).toHaveBeenCalledWith(
           expect.any(Response),
@@ -383,7 +385,7 @@ describe('router', () => {
         expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
           expect.any(Function),
           expect.any(Response),
-          `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000${path}`,
+          `https://example.com/org-cdn/rtv/012105150310000${path}`,
           '33f8b592a7722000aa8a50cce7e61ad4aaa019fe'
         );
       }
@@ -418,12 +420,12 @@ describe('router', () => {
       );
 
       expect(getCacheForMock).toHaveBeenCalledWith(
-        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`,
+        `https://example.com/org-cdn/rtv/012105150310000/v0/${file}`,
         'nl;',
         {'country': 'nl'}
       );
       expect(fetchImmutableUrlOrDieMock).toHaveBeenCalledWith(
-        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`
+        `https://example.com/org-cdn/rtv/012105150310000/v0/${file}`
       );
       expect(injectAmpGeoMock).toHaveBeenCalledWith(
         expect.any(Response),
@@ -433,7 +435,7 @@ describe('router', () => {
       expect(enqueueCacheAndCloneMock).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Response),
-        `https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/${file}`,
+        `https://example.com/org-cdn/rtv/012105150310000/v0/${file}`,
         'nl;'
       );
     });
@@ -469,7 +471,7 @@ describe('router', () => {
         );
 
         expect(getCacheForMock).toHaveBeenCalledWith(
-          'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
+          'https://example.com/org-cdn/rtv/012105150310000/v0/amp-geo-0.1.js',
           'nl;',
           {'country': 'nl'}
         );
@@ -505,7 +507,7 @@ describe('router', () => {
 
       expect(readMock).toHaveBeenCalledWith(null, 'AMP_EXP', {type: 'json'});
       expect(getCacheForMock).toHaveBeenCalledWith(
-        'https://pub-857751ce270b4ed4b8b5a2baa3212e8d.r2.dev/org-cdn/rtv/012105150310000/v0.js',
+        'https://example.com/org-cdn/rtv/012105150310000/v0.js',
         '075dd3a9f4007daabf4629bffeb89644f1c55ec0',
         {'country': 'nl'}
       );
