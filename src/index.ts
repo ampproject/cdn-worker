@@ -2,17 +2,10 @@
  * Contains request routing logic.
  */
 
-import mime from 'mime/lite';
-
+import {setupKnownMimeTypes} from './headers';
 import router from './router';
 
-mime.define(
-  {
-    'image/x-icon': ['ico'],
-    'text/javascript': ['js', 'mjs'],
-  },
-  true
-);
+setupKnownMimeTypes();
 
 addEventListener('fetch', async (event) => {
   event.respondWith(router.run(event));

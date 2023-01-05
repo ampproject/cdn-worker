@@ -2,6 +2,7 @@
  * HTTP headers related functions and consts.
  */
 
+import mime from 'mime/lite';
 import type {IncomingCloudflareProperties} from 'worktop/request';
 
 // `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
@@ -47,6 +48,7 @@ export enum CacheControl {
 
 export enum ContentType {
   APPLICATION_JSON = 'application/json',
+  IMAGE_X_ICON = 'image/x-icon',
   TEXT_CSS = 'text/css',
   TEXT_JAVASCRIPT = 'text/javascript',
   TEXT_HTML = 'text/html',
@@ -55,6 +57,21 @@ export enum ContentType {
 
 export enum ContentEncoding {
   BROTLI = 'br',
+}
+
+/**
+ * Overrides the `mime` module's default mime types for some known types.
+ *
+ * Must be executed at the start of the worker execution!
+ */
+export function setupKnownMimeTypes() {
+  mime.define(
+    {
+      [ContentType.IMAGE_X_ICON]: ['ico'],
+      [ContentType.TEXT_JAVASCRIPT]: ['js', 'mjs'],
+    },
+    true
+  );
 }
 
 /**
