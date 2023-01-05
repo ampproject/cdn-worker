@@ -5,11 +5,23 @@
 import mime from 'mime/lite';
 import type {IncomingCloudflareProperties} from 'worktop/request';
 
-// `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
-export type IncomingCloudflarePropertiesExtended =
-  IncomingCloudflareProperties & {
-    clientAcceptEncoding?: string;
-  };
+// This type exists to merge type of `request.cf` as it's defined in 'worktop',
+// and its type as it's defined in '@cloudflare/workers-types'.
+//
+// Globally, we use '@cloudflare/workers-types' as a drop-in replacement for the
+// WebWorker lib (in tsconfig.json) type definitions. See:
+// https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-5.html#supporting-lib-from-node_modules
+//
+// When we use the `Router` class from 'worktop' in router.ts, it uses worktop's
+// own redeclared global types, among which is its own 'Request' interface and
+// its own interface for `request.cf`.
+//
+// For the most part the two "cf"-types are the same, but worktop's version is
+// missing the `clientAcceptEncoding` field. This merged type helps us fix a
+// type check error that emerge erroneously from these declaration differences.
+export type IncomingRequestCloudflareProperties =
+  | IncomingRequestCfProperties
+  | (IncomingCloudflareProperties & {clientAcceptEncoding?: string});
 
 const SHARED_HEADERS: ReadonlyMap<string, string> = new Map([
   ['access-control-allow-origin', '*'],
@@ -147,7 +159,7 @@ export function withHeaders(
  * Whether the client supports Brotli compression.
  */
 export function supportsBrotli(
-  cf?: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCloudflareProperties
 ): boolean {
   return /\bbr\b/.test(cf?.clientAcceptEncoding ?? '');
 }
