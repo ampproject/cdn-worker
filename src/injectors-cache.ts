@@ -7,9 +7,10 @@ import {
   CacheControl,
   ContentEncoding,
   HeaderKeys,
-  IncomingRequestCloudflareProperties,
   supportsBrotli,
 } from './headers';
+
+import type {IncomingRequestCloudflareProperties} from './headers';
 
 const INJECTORS_CACHE_NAME = 'injectors-cache-v1';
 const textEncoder = new TextEncoder();

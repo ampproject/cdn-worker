@@ -3,8 +3,7 @@
  */
 
 import {Router} from 'worktop';
-import {KV, read} from 'worktop/kv';
-import {ServerRequest} from 'worktop/request';
+import {read} from 'worktop/kv';
 
 import {FetchError} from './errors';
 import {
@@ -14,12 +13,16 @@ import {
   HeaderKeys,
   withHeaders,
 } from './headers';
-import {AmpExp, injectAmpExp, injectAmpGeo} from './injectors';
+import {injectAmpExp, injectAmpGeo} from './injectors';
 import {enqueueCacheAndClone, getCacheFor, hashObject} from './injectors-cache';
 import {rtvMetadata} from './metadata';
 import {chooseRtv} from './rtv';
 import {fetchImmutableAmpFileOrDie, fetchImmutableUrlOrDie} from './storage';
 import {getAmpFileUrl} from './storage-util';
+
+import type {AmpExp} from './injectors';
+import type {KV} from 'worktop/kv';
+import type {ServerRequest} from 'worktop/request';
 
 // KV Binding via `wrangler.toml` config.
 declare const CONFIG: KV.Namespace;

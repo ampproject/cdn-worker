@@ -7,6 +7,6 @@ import router from './router';
 
 setupKnownMimeTypes();
 
-addEventListener('fetch', async (event) => {
+addEventListener('fetch', (event) => {
   event.respondWith(router.run(event));
 });

@@ -3,9 +3,11 @@
  * JSON file.
  */
 
-import {KV, list, read} from 'worktop/kv';
+import {list, read} from 'worktop/kv';
 
 import {Channel} from './rtv';
+
+import type {KV} from 'worktop/kv';
 
 // KV Binding via `wrangler.toml` config.
 declare const RTV: KV.Namespace;

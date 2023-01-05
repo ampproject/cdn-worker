@@ -9,10 +9,11 @@ import {
   ContentEncoding,
   ContentType,
   HeaderKeys,
-  IncomingRequestCloudflareProperties,
   supportsBrotli,
 } from './headers';
 import {getAmpFileUrl} from './storage-util';
+
+import type {IncomingRequestCloudflareProperties} from './headers';
 
 const FETCH_OPTIONS: RequestInit<RequestInitCfProperties> = {
   cf: {cacheEverything: true, cacheTtl: 31536000},

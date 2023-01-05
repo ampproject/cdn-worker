@@ -31,10 +31,11 @@ describe('injectors-cache', () => {
 
     Object.assign(global, {
       caches: {
-        open: async () => ({
-          match: cacheMatchMock,
-          put: cachePutMock,
-        }),
+        open: () =>
+          Promise.resolve({
+            match: cacheMatchMock,
+            put: cachePutMock,
+          }),
       },
     });
   });
@@ -115,7 +116,7 @@ describe('injectors-cache', () => {
 
       expect(response).toBe(inputResponse);
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => process.nextTick(resolve));
       expect(cachePutMock).toHaveBeenCalledTimes(2);
       expect(cachePutMock).toHaveBeenNthCalledWith(
         1,
@@ -146,7 +147,7 @@ describe('injectors-cache', () => {
       expect(putResponse2.body).toEqual(Buffer.from([0x00, 0x01, 0x02]));
     });
 
-    it('throws an error on input without body', async () => {
+    it('throws an error on input without body', () => {
       expect(() => {
         enqueueCacheAndClone(
           extendMock,

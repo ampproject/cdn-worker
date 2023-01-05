@@ -1,20 +1,26 @@
 {
   "root": true,
-  "extends": [
-    "typescript",
-    "prettier",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "tsConfigRootDir": ".",
+    "project": ["tsconfig.json", "test/tsconfig.json"]
+  },
   "plugins": [
     "@typescript-eslint/eslint-plugin",
     "google-camelcase",
     "import",
     "prettier",
-    "simple-import-sort",
     "sort-destructure-keys",
     "tsdoc"
   ],
-  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier"
+  ],
   "settings": {
     "import/parsers": {
       "@typescript-eslint/parser": [".ts", ".tsx"]
@@ -28,10 +34,6 @@
   "env": {
     "es2020": true,
     "worker": true
-  },
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module"
   },
   "reportUnusedDisableDirectives": true,
   "rules": {
@@ -50,6 +52,17 @@
     "import/order": [
       2,
       {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "unknown",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true

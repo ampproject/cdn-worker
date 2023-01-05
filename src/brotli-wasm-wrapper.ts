@@ -1,4 +1,5 @@
 import brotliImportPromise from 'brotli-wasm';
+
 import type {BrotliModule, Options} from 'brotli-wasm';
 
 // This Module object is injected as a global by the Cloudflare Worker runner.

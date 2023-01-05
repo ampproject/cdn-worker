@@ -3,6 +3,7 @@
  */
 
 import mime from 'mime/lite';
+
 import type {IncomingCloudflareProperties} from 'worktop/request';
 
 // This type exists to merge type of `request.cf` as it's defined in 'worktop',
