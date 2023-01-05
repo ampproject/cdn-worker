@@ -4,10 +4,5 @@
     "es2020": true,
     "jest": true,
     "worker": true
-  },
-  "globals": {
-    "FetchEvent": true,
-    "fetchMock": true,
-    "global": true
   }
 }

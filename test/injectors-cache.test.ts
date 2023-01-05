@@ -7,7 +7,7 @@ import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import * as brotli from '../src/brotli-wasm-wrapper';
 import {
   CacheControl,
-  IncomingCloudflarePropertiesExtended,
+  IncomingRequestCloudflareProperties,
 } from '../src/headers';
 import {enqueueCacheAndClone, getCacheFor} from '../src/injectors-cache';
 
@@ -20,21 +20,23 @@ const extendMock = jest.fn();
 
 const cfSupportsBrotli = {
   clientAcceptEncoding: 'gzip, deflate, br',
-} as IncomingCloudflarePropertiesExtended;
+} as IncomingRequestCloudflareProperties;
 const cfDoesNotSupportBrotli = {
   clientAcceptEncoding: 'gzip, deflate',
-} as IncomingCloudflarePropertiesExtended;
+} as IncomingRequestCloudflareProperties;
 
 describe('injectors-cache', () => {
   beforeAll(() => {
     enableFetchMocks();
 
-    global.caches = {
-      open: async () => ({
-        match: cacheMatchMock,
-        put: cachePutMock,
-      }),
-    } as unknown as CacheStorage;
+    Object.assign(global, {
+      caches: {
+        open: async () => ({
+          match: cacheMatchMock,
+          put: cachePutMock,
+        }),
+      },
+    });
   });
 
   afterAll(() => {

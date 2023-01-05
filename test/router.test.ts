@@ -52,7 +52,6 @@ function makeFetchEvent(path: string): FetchEvent {
     request: {
       method: 'GET',
       url: `https://example.com${path}`,
-      // @ts-expect-error ignore missing fields, we only care about these ones.
       cf: {
         country: 'nl',
       },
@@ -70,7 +69,7 @@ function makeFetchEvent(path: string): FetchEvent {
     },
 
     waitUntil: () => undefined,
-  };
+  } as unknown as FetchEvent;
 }
 
 describe('router', () => {
