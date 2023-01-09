@@ -2,7 +2,7 @@
  * Contains helper functions for interacting with the backing storage.
  */
 
-const STORAGE_BASE_URL = 'https://storage.googleapis.com/org-cdn/org-cdn/rtv/';
+declare const STORAGE_BASE_URL: string;
 
 const V0_DEDUP_RTV_PREFIXES: ReadonlySet<string> = new Set([
   '00',

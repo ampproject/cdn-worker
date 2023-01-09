@@ -2,9 +2,10 @@
  * Contains functions that interact with the backing storage.
  */
 
+import mime from 'mime/lite';
+
 import {FetchError} from './errors';
 import {
-  CHARSET_UTF_8,
   ContentEncoding,
   ContentType,
   HeaderKeys,
@@ -43,6 +44,8 @@ export async function fetchImmutableUrlOrDie(
     brotliResponsePromise,
   ]);
 
+  const contentType = mime.getType(url) || ContentType.TEXT_PLAIN;
+
   if (!response.ok) {
     throw new FetchError(response.status, response.statusText);
   }
@@ -52,9 +55,7 @@ export async function fetchImmutableUrlOrDie(
     // uncompressed response, and set other required headers.
     return new Response(brotliResponse.body, {
       headers: {
-        [HeaderKeys.CONTENT_TYPE]:
-          response.headers.get(HeaderKeys.CONTENT_TYPE) ??
-          `${ContentType.TEXT_PLAIN}; ${CHARSET_UTF_8}`,
+        [HeaderKeys.CONTENT_TYPE]: contentType,
         [HeaderKeys.CONTENT_ENCODING]: ContentEncoding.BROTLI,
       },
       encodeBody: 'manual',
@@ -64,7 +65,11 @@ export async function fetchImmutableUrlOrDie(
   // Brotli pre-compressed file for `url` was either not tried, or the file
   // was not found in storage.
   console.warn('No Brotli pre-compressed response for', url);
-  return response;
+  return new Response(response.body, {
+    headers: {
+      [HeaderKeys.CONTENT_TYPE]: contentType,
+    },
+  });
 }
 
 /**

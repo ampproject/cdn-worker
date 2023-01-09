@@ -13,11 +13,13 @@
   "license": "Apache-2.0",
   "dependencies": {
     "brotli-wasm": "1.1.0",
+    "mime": "3.0.0",
     "worktop": "0.7.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20221111.1",
     "@types/jest": "29.2.5",
+    "@types/mime": "3.0.1",
     "@types/service-worker-mock": "2.0.1",
     "@typescript-eslint/eslint-plugin": "5.48.0",
     "@typescript-eslint/parser": "5.48.0",

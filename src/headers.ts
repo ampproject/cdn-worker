@@ -2,6 +2,7 @@
  * HTTP headers related functions and consts.
  */
 
+import mime from 'mime/lite';
 import type {IncomingCloudflareProperties} from 'worktop/request';
 
 // `clientAcceptEncoding` is unofficial, but guaranteed by Cloudflare.
@@ -46,9 +47,11 @@ export enum CacheControl {
 }
 
 export enum ContentType {
-  APPLICATION_JAVASCRIPT = 'application/javascript',
   APPLICATION_JSON = 'application/json',
+  IMAGE_X_ICON = 'image/x-icon',
+  TEXT_CSS = 'text/css',
   TEXT_JAVASCRIPT = 'text/javascript',
+  TEXT_HTML = 'text/html',
   TEXT_PLAIN = 'text/plain',
 }
 
@@ -57,20 +60,30 @@ export enum ContentEncoding {
 }
 
 /**
+ * Overrides the `mime` module's default mime types for some known types.
+ *
+ * Must be executed at the start of the worker execution!
+ */
+export function setupKnownMimeTypes() {
+  mime.define(
+    {
+      [ContentType.IMAGE_X_ICON]: ['ico'],
+      [ContentType.TEXT_JAVASCRIPT]: ['js', 'mjs'],
+    },
+    true
+  );
+}
+
+/**
  * Normalizes the Content-Type of the output based on the input response's value.
  *
- * * Overrides `application/javascript` to `text/javascript; charset=UTF-8`
- * * If defined, uses the input response's Content-Type directly (adding
- *   `; charset=UTF-8` to known types if it is missing),
- * * Otherwise fallbacks back to `text/plain; charset=UTF-8`
+ * Adds `; charset=UTF-8` to known types for the input response, or fallbacks
+ * back to `text/plain; charset=UTF-8` if the input response has no Content-Type
+ * at all.
  *
  * @param inputContentType - value of the input response's Content-Type header.
  */
 function normalizeContentType(inputContentType: string | null): string {
-  if (inputContentType === ContentType.APPLICATION_JAVASCRIPT) {
-    return `${ContentType.TEXT_JAVASCRIPT}; ${CHARSET_UTF_8}`;
-  }
-
   if (inputContentType) {
     return Object.values(ContentType).map(String).includes(inputContentType)
       ? `${inputContentType}; ${CHARSET_UTF_8}`
