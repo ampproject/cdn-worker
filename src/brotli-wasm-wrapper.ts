@@ -1,6 +1,6 @@
-import brotliImportPromise from 'brotli-wasm';
+import brotliImportPromise from 'browser:brotli-wasm';
 
-import type {BrotliModule, Options} from 'brotli-wasm';
+import type {BrotliModule, Options} from 'browser:brotli-wasm';
 
 // This Module object is injected as a global by the Cloudflare Worker runner.
 declare const BROTLI_WASM: WebAssembly.Module;
@@ -10,14 +10,14 @@ declare const BROTLI_WASM: WebAssembly.Module;
 // Note that initially this field is undefined. The exported functions in this
 // wrapper first await on `init_()` to ensure this field is initialized.
 declare const globalThis: ServiceWorkerGlobalScope & {
-  __BROTLI_WASM_INSTANCE: WebAssembly.Exports & BrotliModule;
+  __BROTLI_WASM_INSTANCE?: BrotliModule;
 };
 
 /**
  * Initializes the globalThis.__BROTLI_WASM_INSTANCE variable exactly once.
  */
 async function init_(): Promise<BrotliModule> {
-  // See note in types/brotli-wasm.d.ts.
+  // See note in types/browser/brotli-wasm.d.ts.
   const brotli = await brotliImportPromise;
   if (!globalThis.__BROTLI_WASM_INSTANCE) {
     const instance = await WebAssembly.instantiate(BROTLI_WASM, {

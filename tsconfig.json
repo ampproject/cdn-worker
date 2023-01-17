@@ -12,6 +12,9 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "browser:brotli-wasm": ["./node_modules/brotli-wasm/index.browser.js"]
+    }
   }
 }
