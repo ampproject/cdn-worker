@@ -3,5 +3,8 @@
   "globals": {
     "CONFIG": null,
     "RTV": null
+  },
+  "moduleNameMapper": {
+    "browser:brotli-wasm": "../types/browser/brotli-wasm.d.ts"
   }
 }
