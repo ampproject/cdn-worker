@@ -9,12 +9,13 @@ import {
   ContentEncoding,
   ContentType,
   HeaderKeys,
-  IncomingCloudflarePropertiesExtended,
   supportsBrotli,
 } from './headers';
 import {getAmpFileUrl} from './storage-util';
 
-const FETCH_OPTIONS: RequestInit = {
+import type {IncomingRequestCloudflareProperties} from './headers';
+
+const FETCH_OPTIONS: RequestInit<RequestInitCfProperties> = {
   cf: {cacheEverything: true, cacheTtl: 31536000},
 };
 
@@ -32,7 +33,7 @@ const FETCH_OPTIONS: RequestInit = {
  */
 export async function fetchImmutableUrlOrDie(
   url: string,
-  cf?: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCloudflareProperties
 ): Promise<Response> {
   const responsePromise = fetch(url, FETCH_OPTIONS);
   const brotliResponsePromise = supportsBrotli(cf)
@@ -89,7 +90,7 @@ export async function fetchImmutableUrlOrDie(
 export async function fetchImmutableAmpFileOrDie(
   rtv: string,
   path: string,
-  cf?: IncomingCloudflarePropertiesExtended
+  cf?: IncomingRequestCloudflareProperties
 ): Promise<Response> {
   return fetchImmutableUrlOrDie(getAmpFileUrl(rtv, path), cf);
 }

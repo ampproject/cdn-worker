@@ -7,9 +7,10 @@ import {
   CacheControl,
   ContentEncoding,
   HeaderKeys,
-  IncomingCloudflarePropertiesExtended,
   supportsBrotli,
 } from './headers';
+
+import type {IncomingRequestCloudflareProperties} from './headers';
 
 const INJECTORS_CACHE_NAME = 'injectors-cache-v1';
 const textEncoder = new TextEncoder();
@@ -62,7 +63,7 @@ export async function hashObject(obj: unknown): Promise<string> {
 export async function getCacheFor(
   url: string,
   key: string,
-  cf: IncomingCloudflarePropertiesExtended
+  cf: IncomingRequestCloudflareProperties
 ): Promise<Response | undefined> {
   const cache = await caches.open(INJECTORS_CACHE_NAME);
   return supportsBrotli(cf)

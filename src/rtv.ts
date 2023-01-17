@@ -3,9 +3,10 @@
  */
 
 import * as Cookie from 'worktop/cookie';
-import {KV} from 'worktop/kv';
 import {read} from 'worktop/kv';
-import {ServerRequest} from 'worktop/request';
+
+import type {KV} from 'worktop/kv';
+import type {ServerRequest} from 'worktop/request';
 
 // KV Binding via `wrangler.toml` config.
 declare const RTV: KV.Namespace;

@@ -7,7 +7,7 @@ import {disableFetchMocks, enableFetchMocks} from 'jest-fetch-mock';
 import * as brotli from '../src/brotli-wasm-wrapper';
 import {
   CacheControl,
-  IncomingCloudflarePropertiesExtended,
+  IncomingRequestCloudflareProperties,
 } from '../src/headers';
 import {enqueueCacheAndClone, getCacheFor} from '../src/injectors-cache';
 
@@ -20,21 +20,24 @@ const extendMock = jest.fn();
 
 const cfSupportsBrotli = {
   clientAcceptEncoding: 'gzip, deflate, br',
-} as IncomingCloudflarePropertiesExtended;
+} as IncomingRequestCloudflareProperties;
 const cfDoesNotSupportBrotli = {
   clientAcceptEncoding: 'gzip, deflate',
-} as IncomingCloudflarePropertiesExtended;
+} as IncomingRequestCloudflareProperties;
 
 describe('injectors-cache', () => {
   beforeAll(() => {
     enableFetchMocks();
 
-    global.caches = {
-      open: async () => ({
-        match: cacheMatchMock,
-        put: cachePutMock,
-      }),
-    } as unknown as CacheStorage;
+    Object.assign(global, {
+      caches: {
+        open: () =>
+          Promise.resolve({
+            match: cacheMatchMock,
+            put: cachePutMock,
+          }),
+      },
+    });
   });
 
   afterAll(() => {
@@ -113,7 +116,7 @@ describe('injectors-cache', () => {
 
       expect(response).toBe(inputResponse);
 
-      await new Promise(process.nextTick);
+      await new Promise((resolve) => process.nextTick(resolve));
       expect(cachePutMock).toHaveBeenCalledTimes(2);
       expect(cachePutMock).toHaveBeenNthCalledWith(
         1,
@@ -144,7 +147,7 @@ describe('injectors-cache', () => {
       expect(putResponse2.body).toEqual(Buffer.from([0x00, 0x01, 0x02]));
     });
 
-    it('throws an error on input without body', async () => {
+    it('throws an error on input without body', () => {
       expect(() => {
         enqueueCacheAndClone(
           extendMock,
