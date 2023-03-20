@@ -28,7 +28,7 @@
     "esbuild-plugin-ignore": "1.1.1",
     "esbuild-plugin-text-replace": "1.2.0",
     "eslint": "8.36.0",
-    "eslint-config-prettier": "8.7.0",
+    "eslint-config-prettier": "8.8.0",
     "eslint-config-typescript": "3.0.0",
     "eslint-import-resolver-typescript": "3.5.3",
     "eslint-plugin-google-camelcase": "0.0.2",
