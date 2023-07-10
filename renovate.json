@@ -1,8 +1,5 @@
 {
-  "extends": ["config:base"],
-  "node": {
-    "supportPolicy": ["lts_latest"]
-  },
+  "extends": ["config:recommended"],
   "commitMessagePrefix": "📦",
   "timezone": "America/Los_Angeles",
   "schedule": "after 12am on monday",
@@ -11,13 +8,13 @@
   "packageRules": [
     {
       "groupName": "devDependencies",
-      "matchFiles": ["package.json"],
+      "matchFileNames": ["package.json"],
       "matchDepTypes": ["devDependencies"],
       "automerge": true
     },
     {
       "groupName": "dependencies",
-      "matchFiles": ["package.json"],
+      "matchFileNames": ["package.json"],
       "matchDepTypes": ["dependencies"],
       "automerge": false
     }
