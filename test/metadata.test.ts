@@ -24,6 +24,7 @@ describe('metadata', () => {
   beforeAll(() => {
     enableFetchMocks();
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     listMock.mockImplementation(async function* () {
       yield {
         done: true,
@@ -39,6 +40,7 @@ describe('metadata', () => {
       };
     });
     readMock.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/require-await
       async (_, key) =>
         ({
           'beta': '032105190310000',
@@ -48,7 +50,7 @@ describe('metadata', () => {
           'nightly': '042105220310000',
           'nightly-control': '052105150310000',
           'stable': '012105150310000',
-        }[key])
+        })[key]
     );
   });
 
