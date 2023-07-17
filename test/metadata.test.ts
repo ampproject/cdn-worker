@@ -7,16 +7,7 @@ import {list, read} from 'worktop/kv';
 
 import {rtvMetadata} from '../src/metadata';
 
-jest.mock('worktop/kv', () => ({
-  // this module's `list` method is an async generator (i.e.,
-  // `async function* () {}`), and Jest's automock feature does not work with
-  // those. Unfortunately this means we have to explicitly list all the
-  // functions in this module that we want to mock.
-  // TODO(danielrozenberg): https://github.com/facebook/jest/pull/11080 fixes
-  // the need for this hack.
-  list: jest.fn(),
-  read: jest.fn(),
-}));
+jest.mock('worktop/kv');
 const listMock = jest.mocked(list);
 const readMock = jest.mocked(read);
 
@@ -24,6 +15,7 @@ describe('metadata', () => {
   beforeAll(() => {
     enableFetchMocks();
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     listMock.mockImplementation(async function* () {
       yield {
         done: true,
@@ -39,6 +31,7 @@ describe('metadata', () => {
       };
     });
     readMock.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/require-await
       async (_, key) =>
         ({
           'beta': '032105190310000',
@@ -48,7 +41,7 @@ describe('metadata', () => {
           'nightly': '042105220310000',
           'nightly-control': '052105150310000',
           'stable': '012105150310000',
-        }[key])
+        })[key]
     );
   });
 
