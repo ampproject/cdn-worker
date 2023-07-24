@@ -17,14 +17,14 @@
     "worktop": "0.7.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20230710.1",
+    "@cloudflare/workers-types": "4.20230717.1",
     "@types/jest": "29.5.3",
     "@types/mime": "3.0.1",
     "@types/service-worker-mock": "2.0.1",
     "@typescript/lib-webworker": "npm:@cloudflare/workers-types",
     "@typescript-eslint/eslint-plugin": "6.1.0",
     "@typescript-eslint/parser": "6.1.0",
-    "esbuild": "0.18.13",
+    "esbuild": "0.18.16",
     "esbuild-plugin-ignore": "1.1.1",
     "esbuild-plugin-text-replace": "1.3.0",
     "eslint": "8.45.0",
