@@ -19,7 +19,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "4.20230922.0",
     "@types/jest": "29.5.5",
-    "@types/mime": "3.0.1",
+    "@types/mime": "3.0.2",
     "@types/service-worker-mock": "2.0.2",
     "@typescript/lib-webworker": "npm:@cloudflare/workers-types",
     "@typescript-eslint/eslint-plugin": "6.7.3",
