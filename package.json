@@ -17,8 +17,8 @@
     "worktop": "0.7.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20231025.0",
-    "@types/jest": "29.5.9",
+    "@cloudflare/workers-types": "4.20231121.0",
+    "@types/jest": "29.5.10",
     "@types/mime": "3.0.4",
     "@types/service-worker-mock": "2.0.4",
     "@typescript/lib-webworker": "npm:@cloudflare/workers-types",
