@@ -17,7 +17,7 @@
     "worktop": "0.7.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20240725.0",
+    "@cloudflare/workers-types": "4.20240729.0",
     "@types/jest": "29.5.12",
     "@types/mime": "3.0.4",
     "@types/service-worker-mock": "2.0.4",
@@ -40,7 +40,7 @@
     "jest-fetch-mock": "3.0.3",
     "prettier": "3.3.3",
     "service-worker-mock": "2.0.5",
-    "ts-jest": "29.2.3",
+    "ts-jest": "29.2.4",
     "ts-loader": "9.5.1",
     "typescript": "5.5.4"
   }
