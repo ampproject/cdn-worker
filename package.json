@@ -17,7 +17,7 @@
     "worktop": "0.7.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20250303.0",
+    "@cloudflare/workers-types": "4.20250310.0",
     "@types/jest": "29.5.14",
     "@types/mime": "3.0.4",
     "@types/service-worker-mock": "2.0.4",
@@ -30,7 +30,7 @@
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-typescript": "3.0.0",
-    "eslint-import-resolver-typescript": "3.8.3",
+    "eslint-import-resolver-typescript": "3.8.4",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-prettier": "5.2.3",
