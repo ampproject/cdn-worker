@@ -12,8 +12,8 @@
   "author": "The AMP HTML Authors",
   "license": "Apache-2.0",
   "dependencies": {
-    "brotli-wasm": "2.0.1",
-    "mime": "3.0.0",
+    "brotli-wasm": "3.0.1",
+    "mime": "4.0.7",
     "worktop": "0.7.3"
   },
   "devDependencies": {
